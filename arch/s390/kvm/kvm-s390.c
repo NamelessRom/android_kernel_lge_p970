@@ -306,9 +306,15 @@ struct kvm_vcpu *kvm_arch_vcpu_create(struct kvm *kvm,
 
 	if (id >= KVM_MAX_VCPUS)
 		goto out;
+<<<<<<< HEAD
 
 	rc = -ENOMEM;
 
+=======
+
+	rc = -ENOMEM;
+
+>>>>>>> KVM: s390: check cpu_id prior to using it
 	vcpu = kzalloc(sizeof(struct kvm_vcpu), GFP_KERNEL);
 	if (!vcpu)
 		goto out;
