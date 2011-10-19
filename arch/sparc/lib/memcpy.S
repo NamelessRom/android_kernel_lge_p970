@@ -13,6 +13,17 @@
 	.align	4;		\
 x:
 
+<<<<<<< HEAD
+=======
+
+/* In kernel these functions don't return a value.
+ * One should use macros in asm/string.h for that purpose.
+ * We return 0, so that bugs are more apparent.
+ */
+#define SETUP_RETL
+#define RETL_INSN	clr	%o0
+
+>>>>>>> sparc32: Remove non-kernel code from memcpy implementation.
 /* Both these macros have to start with exactly the same insn */
 #define MOVE_BIGCHUNK(src, dst, offset, t0, t1, t2, t3, t4, t5, t6, t7) \
 	ldd	[%src + (offset) + 0x00], %t0; \
@@ -170,7 +181,11 @@ FUNC(memmove)
 	 sub		%o0, 1, %o0
 
 	retl
+<<<<<<< HEAD
 	 mov		%g7, %o0
+=======
+	 RETL_INSN
+>>>>>>> sparc32: Remove non-kernel code from memcpy implementation.
 
 /* NOTE: This code is executed just for the cases,
          where %src (=%o1) & 3 is != 0.
@@ -313,7 +328,11 @@ FUNC(memcpy)	/* %o0=dst %o1=src %o2=len */
 	bge		82b
 	 add		%o0, 128, %o0
 
+<<<<<<< HEAD
 	andcc		%g1, 0x70, %g4
+=======
+	andcc		%g1, 0x70, %g7
+>>>>>>> sparc32: Remove non-kernel code from memcpy implementation.
 	be		84f
 	 andcc		%g1, 8, %g0
 
@@ -365,15 +384,23 @@ FUNC(memcpy)	/* %o0=dst %o1=src %o2=len */
 	stb		%g2, [%o0]
 1:
 	retl
+<<<<<<< HEAD
 	 mov		%g7, %o0
+=======
+ 	 RETL_INSN
+>>>>>>> sparc32: Remove non-kernel code from memcpy implementation.
 
 86:	/* non_aligned */
 	cmp		%o2, 6
 	bleu		88f
+<<<<<<< HEAD
 	 nop
 
 	save		%sp, -96, %sp
 	andcc		%i0, 3, %g0
+=======
+	 andcc		%o0, 3, %g0
+>>>>>>> sparc32: Remove non-kernel code from memcpy implementation.
 	be		61f
 	 andcc		%i0, 1, %g0
 	be		60f
@@ -486,11 +513,19 @@ FUNC(memcpy)	/* %o0=dst %o1=src %o2=len */
 1:
 	be		1f
 	 nop
+<<<<<<< HEAD
 	ldub		[%i1], %g2
 	stb		%g2, [%i0 + 4]
 1:
 	ret
 	 restore	%g7, %g0, %o0
+=======
+	ldub		[%o1], %g2
+	stb		%g2, [%o0 + 4]
+1:
+	retl
+	 RETL_INSN
+>>>>>>> sparc32: Remove non-kernel code from memcpy implementation.
 
 88:	/* short_end */
 
