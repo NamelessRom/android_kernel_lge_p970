@@ -429,6 +429,7 @@ static noinline int gup_hugepte(pte_t *ptep, unsigned long sz, unsigned long add
 
 	if (unlikely(pte_val(pte) != pte_val(*ptep))) {
 		/* Could be optimized better */
+<<<<<<< HEAD
 		*nr -= refs;
 		while (refs--)
 			put_page(head);
@@ -443,6 +444,12 @@ static noinline int gup_hugepte(pte_t *ptep, unsigned long sz, unsigned long add
 		if (PageTail(tail))
 			get_huge_page_tail(tail);
 		tail++;
+=======
+		while (*nr) {
+			put_page(head);
+			(*nr)--;
+		}
+>>>>>>> powerpc: get_hugepte() don't put_page() the wrong page
 	}
 
 	return 1;
