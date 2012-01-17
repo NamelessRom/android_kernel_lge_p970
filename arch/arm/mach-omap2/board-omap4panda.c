@@ -686,6 +686,13 @@ static void omap4_panda_hdmi_mux_init(void)
 			ARRAY_SIZE(panda_hdmi_gpios));
 	if (status)
 		pr_err("%s: Cannot request HDMI GPIOs %x \n", __func__, status);
+
+	return status;
+}
+
+static void omap4_panda_panel_disable_hdmi(struct omap_dss_device *dssdev)
+{
+	gpio_free_array(panda_hdmi_gpios, ARRAY_SIZE(panda_hdmi_gpios));
 }
 
 static struct omap_dss_device  omap4_panda_hdmi_device = {
