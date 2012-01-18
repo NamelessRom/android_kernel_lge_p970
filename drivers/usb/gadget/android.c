@@ -215,18 +215,6 @@ static struct usb_configuration android_config_driver = {
             LG Gadget driver */
 	.unbind		= android_unbind_config,
 	.bConfigurationValue = 1,
-
-//!![S] 2011-05-06 by pilsu.kim@leg.com : change to bmAttributes for USB-IF Test
-//++            If you want to pass USB-IF test, you have to change like below things
-//++            bmAttributes    = USB_CONFIG__ATT_ONE | USB_CONFIG_ATT_WAKEUP
-//++             ## Do Not use USB_CONFIG_ATT_SELFPOWER ##
-#if defined(CONFIG_LGE_ANDROID_USB)
-        .bmAttributes   = USB_CONFIG_ATT_ONE | USB_CONFIG_ATT_WAKEUP,
-#else
-        .bmAttributes   = USB_CONFIG_ATT_ONE | USB_CONFIG_ATT_SELFPOWER,
-#endif
-//!![E] 2011-05-06 by pilsu.kim@lge.com :
-	.bMaxPower	= 0xFA, /* 500ma */
 };
 
 static void android_work(struct work_struct *data)
@@ -1557,7 +1545,6 @@ static int android_bind(struct usb_composite_dev *cdev)
 		device_desc.bcdDevice = __constant_cpu_to_le16(0x9999);
 	}
 
-	usb_gadget_set_selfpowered(gadget);
 	dev->cdev = cdev;
 
 	return 0;
