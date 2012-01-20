@@ -1286,7 +1286,6 @@ static ssize_t enable_store(struct device *pdev, struct device_attribute *attr,
 #if defined(CONFIG_LGE_ANDROID_USB_FUNC)
 		functions_store(pdev,attr,CONFIG_LGE_ANDROID_USB_FUNC_LIST,0);
 #endif
-		cdev->next_string_id = 0;
 		/* update values in composite driver's copy of device descriptor */
 /* LGE_CHANGE_S 4/30/2012 [edwardk.kim@lge.com] */
 //#if !defined(CONFIG_LGE_ANDROID_USB)
