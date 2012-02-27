@@ -124,6 +124,46 @@ typedef u32               compat_sigset_word;
 #define COMPAT_OFF_T_MAX	0x7fffffff
 #define COMPAT_LOFF_T_MAX	0x7fffffffffffffffL
 
+<<<<<<< HEAD:arch/x86/include/asm/compat.h
+=======
+/*
+ * A pointer passed in from user mode. This should not
+ * be used for syscall parameters, just declare them
+ * as pointers because the syscall entry code will have
+ * appropriately converted them already.
+ */
+typedef	u32		compat_uptr_t;
+
+static inline void __user *compat_ptr(compat_uptr_t uptr)
+{
+	return (void __user *)(unsigned long)(uptr & 0x7fffffffUL);
+}
+
+static inline compat_uptr_t ptr_to_compat(void __user *uptr)
+{
+	return (u32)(unsigned long)uptr;
+}
+
+#ifdef CONFIG_COMPAT
+
+static inline int is_compat_task(void)
+{
+	return is_32bit_task();
+}
+
+#endif
+
+static inline void __user *arch_compat_alloc_user_space(long len)
+{
+	unsigned long stack;
+
+	stack = KSTK_ESP(current);
+	if (is_compat_task())
+		stack &= 0x7fffffffUL;
+	return (void __user *) (stack - len);
+}
+
+>>>>>>> compat: fix compile breakage on s390:arch/s390/include/asm/compat.h
 struct compat_ipc64_perm {
 	compat_key_t key;
 	__compat_uid32_t uid;
