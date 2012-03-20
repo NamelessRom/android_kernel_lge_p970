@@ -140,6 +140,7 @@ struct android_dev {
 	struct device *dev;
 
 	bool enabled;
+	int disable_depth;
 	struct mutex mutex;
 	bool connected;
 	int disable_depth;
@@ -279,7 +280,6 @@ static void android_disable(struct android_dev *dev)
 	}
 }
 
-
 /* LGE_SJIT_S 10/21/2011 [mohamed.khadri@lge.com]
             LG Gadget driver */
 #if defined(CONFIG_LGE_ANDROID_USB)
@@ -300,9 +300,7 @@ struct adb_data {
 	bool enabled;
 };
 
-	static int
-adb_function_init(struct android_usb_function *f,
-		struct usb_composite_dev *cdev)
+static int adb_function_init(struct android_usb_function *f, struct usb_composite_dev *cdev)
 {
 	f->config = kzalloc(sizeof(struct adb_data), GFP_KERNEL);
 	if (!f->config)
@@ -348,8 +346,8 @@ static void adb_android_function_disable(struct android_usb_function *f)
 
 static struct android_usb_function adb_function = {
 	.name		= "adb",
-	.enable         = adb_android_function_enable,
-	.disable        = adb_android_function_disable,
+	.enable		= adb_android_function_enable,
+	.disable	= adb_android_function_disable,
 	.init		= adb_function_init,
 	.cleanup	= adb_function_cleanup,
 	.bind_config	= adb_function_bind_config,
