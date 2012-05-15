@@ -581,6 +581,7 @@
 	 */
 	cmpiclr,=	0x01,\tmp,%r0
 	ldi		(_PAGE_DIRTY|_PAGE_READ|_PAGE_WRITE),\prot
+<<<<<<< HEAD
 .ifc \patype,20
 	depd,z		\prot,8,7,\prot
 .else
@@ -590,6 +591,13 @@
 	.error "undefined PA type to do_alias"
 .endif
 .endif
+=======
+#ifdef CONFIG_64BIT
+	depd,z		\prot,8,7,\prot
+#else
+	depw,z		\prot,8,7,\prot
+#endif
+>>>>>>> PARISC: fix PA1.1 oops on boot
 	/*
 	 * OK, it is in the temp alias region, check whether "from" or "to".
 	 * Check "subtle" note in pacache.S re: r23/r26.
