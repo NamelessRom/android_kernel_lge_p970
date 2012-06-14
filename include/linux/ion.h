@@ -57,6 +57,15 @@ enum ion_heap_type {
 					   maintenance when the buffer is
 					   mapped for dma */
 
+/**
+ * heap flags - the lower 16 bits are used by core ion, the upper 16
+ * bits are reserved for use by the heaps themselves.
+ */
+#define ION_FLAG_CACHED 1		/* mappings of this buffer should be
+					   cached, ion will do cache
+					   maintenance when the buffer is
+					   mapped for dma */
+
 #ifdef __KERNEL__
 #include <linux/err.h>
 struct ion_device;
@@ -180,7 +189,7 @@ void ion_client_destroy(struct ion_client *client);
  *		heaps will be tried in order from lowest to highest order bit
  * @flags:	heap flags, the low 16 bits are consumed by ion, the high 16
  *		bits are passed on to the respective heap and can be heap
- *		custom
+ * 		custom
  *
  * Allocate memory in one of the heaps provided in heap mask and return
  * an opaque handle to it.
