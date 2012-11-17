@@ -158,6 +158,65 @@ typedef struct sigaltstack {
 
 #ifdef __KERNEL__
 #include <asm/sigcontext.h>
+<<<<<<< HEAD:arch/arm/include/asm/signal.h
+=======
+
+#ifndef __uClinux__
+#define __HAVE_ARCH_SIG_BITOPS
+
+static inline void sigaddset(sigset_t *set, int _sig)
+{
+	asm ("bfset %0{%1,#1}"
+		: "+o" (*set)
+		: "id" ((_sig - 1) ^ 31)
+		: "cc");
+}
+
+static inline void sigdelset(sigset_t *set, int _sig)
+{
+	asm ("bfclr %0{%1,#1}"
+		: "+o" (*set)
+		: "id" ((_sig - 1) ^ 31)
+		: "cc");
+}
+
+static inline int __const_sigismember(sigset_t *set, int _sig)
+{
+	unsigned long sig = _sig - 1;
+	return 1 & (set->sig[sig / _NSIG_BPW] >> (sig % _NSIG_BPW));
+}
+
+static inline int __gen_sigismember(sigset_t *set, int _sig)
+{
+	int ret;
+	asm ("bfextu %1{%2,#1},%0"
+		: "=d" (ret)
+		: "o" (*set), "id" ((_sig-1) ^ 31)
+		: "cc");
+	return ret;
+}
+
+#define sigismember(set,sig)			\
+	(__builtin_constant_p(sig) ?		\
+	 __const_sigismember(set,sig) :		\
+	 __gen_sigismember(set,sig))
+
+static inline int sigfindinword(unsigned long word)
+{
+	asm ("bfffo %1{#0,#0},%0"
+		: "=d" (word)
+		: "d" (word & -word)
+		: "cc");
+	return word ^ 31;
+}
+
+struct pt_regs;
+extern void ptrace_signal_deliver(struct pt_regs *regs, void *cookie);
+
+#else
+
+#undef __HAVE_ARCH_SIG_BITOPS
+>>>>>>> m68k: fix sigset_t accessor functions:arch/m68k/include/asm/signal.h
 #define ptrace_signal_deliver(regs, cookie) do { } while (0)
 #endif
 
