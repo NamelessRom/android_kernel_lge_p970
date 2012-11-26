@@ -127,6 +127,7 @@ struct sigaction {
 	__sigrestore_t sa_restorer;
 	sigset_t sa_mask;		/* mask last for extensibility */
 };
+#define __ARCH_HAS_SA_RESTORER
 
 struct k_sigaction {
 	struct sigaction sa;
@@ -158,8 +159,6 @@ typedef struct sigaltstack {
 
 #ifdef __KERNEL__
 #include <asm/sigcontext.h>
-<<<<<<< HEAD:arch/arm/include/asm/signal.h
-=======
 
 #ifndef __uClinux__
 #define __HAVE_ARCH_SIG_BITOPS
@@ -216,7 +215,6 @@ extern void ptrace_signal_deliver(struct pt_regs *regs, void *cookie);
 #else
 
 #undef __HAVE_ARCH_SIG_BITOPS
->>>>>>> m68k: fix sigset_t accessor functions:arch/m68k/include/asm/signal.h
 #define ptrace_signal_deliver(regs, cookie) do { } while (0)
 #endif
 

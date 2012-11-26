@@ -1,11 +1,21 @@
-#ifndef __ASM_GENERIC_SIGNAL_H
-#define __ASM_GENERIC_SIGNAL_H
+#ifndef _ASM_POWERPC_SIGNAL_H
+#define _ASM_POWERPC_SIGNAL_H
 
 #include <linux/types.h>
 
 #define _NSIG		64
-#define _NSIG_BPW	__BITS_PER_LONG
+#ifdef __powerpc64__
+#define _NSIG_BPW	64
+#else
+#define _NSIG_BPW	32
+#endif
 #define _NSIG_WORDS	(_NSIG / _NSIG_BPW)
+
+typedef unsigned long old_sigset_t;		/* at least 32 bits */
+
+typedef struct {
+	unsigned long sig[_NSIG_WORDS];
+} sigset_t;
 
 #define SIGHUP		 1
 #define SIGINT		 2
@@ -47,14 +57,12 @@
 
 /* These should not be considered constants from userland.  */
 #define SIGRTMIN	32
-#ifndef SIGRTMAX
 #define SIGRTMAX	_NSIG
-#endif
 
 /*
  * SA_FLAGS values:
  *
- * SA_ONSTACK indicates that a registered stack_t will be used.
+ * SA_ONSTACK is not currently supported, but will allow sigaltstack(2).
  * SA_RESTART flag to get restarting signals (which were the default long ago)
  * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
  * SA_RESETHAND clears the handler when the signal is delivered.
@@ -64,21 +72,18 @@
  * SA_ONESHOT and SA_NOMASK are the historical Linux names for the Single
  * Unix names RESETHAND and NODEFER respectively.
  */
-#define SA_NOCLDSTOP	0x00000001
-#define SA_NOCLDWAIT	0x00000002
-#define SA_SIGINFO	0x00000004
-#define SA_ONSTACK	0x08000000
-#define SA_RESTART	0x10000000
-#define SA_NODEFER	0x40000000
-#define SA_RESETHAND	0x80000000
+#define SA_NOCLDSTOP	0x00000001U
+#define SA_NOCLDWAIT	0x00000002U
+#define SA_SIGINFO	0x00000004U
+#define SA_ONSTACK	0x08000000U
+#define SA_RESTART	0x10000000U
+#define SA_NODEFER	0x40000000U
+#define SA_RESETHAND	0x80000000U
 
 #define SA_NOMASK	SA_NODEFER
 #define SA_ONESHOT	SA_RESETHAND
 
-/*
- * New architectures should not define the obsolete
- *	SA_RESTORER	0x04000000
- */
+#define SA_RESTORER	0x04000000U
 
 /*
  * sigaltstack controls
@@ -89,28 +94,22 @@
 #define MINSIGSTKSZ	2048
 #define SIGSTKSZ	8192
 
-#ifndef __ASSEMBLY__
-typedef struct {
-	unsigned long sig[_NSIG_WORDS];
-} sigset_t;
-
-/* not actually used, but required for linux/syscalls.h */
-typedef unsigned long old_sigset_t;
-
 #include <asm-generic/signal-defs.h>
 
-#ifdef SA_RESTORER
-#define __ARCH_HAS_SA_RESTORER
-#endif
+struct old_sigaction {
+	__sighandler_t sa_handler;
+	old_sigset_t sa_mask;
+	unsigned long sa_flags;
+	__sigrestore_t sa_restorer;
+};
 
 struct sigaction {
 	__sighandler_t sa_handler;
 	unsigned long sa_flags;
-#ifdef SA_RESTORER
 	__sigrestore_t sa_restorer;
-#endif
 	sigset_t sa_mask;		/* mask last for extensibility */
 };
+#define __ARCH_HAS_SA_RESTORER
 
 struct k_sigaction {
 	struct sigaction sa;
@@ -123,13 +122,29 @@ typedef struct sigaltstack {
 } stack_t;
 
 #ifdef __KERNEL__
-
-#include <asm/sigcontext.h>
-#undef __HAVE_ARCH_SIG_BITOPS
-
+struct pt_regs;
 #define ptrace_signal_deliver(regs, cookie) do { } while (0)
-
 #endif /* __KERNEL__ */
-#endif /* __ASSEMBLY__ */
 
-#endif /* _ASM_GENERIC_SIGNAL_H */
+#ifndef __powerpc64__
+/*
+ * These are parameters to dbg_sigreturn syscall.  They enable or
+ * disable certain debugging things that can be done from signal
+ * handlers.  The dbg_sigreturn syscall *must* be called from a
+ * SA_SIGINFO signal so the ucontext can be passed to it.  It takes an
+ * array of struct sig_dbg_op, which has the debug operations to
+ * perform before returning from the signal.
+ */
+struct sig_dbg_op {
+	int dbg_type;
+	unsigned long dbg_value;
+};
+
+/* Enable or disable single-stepping.  The value sets the state. */
+#define SIG_DBG_SINGLE_STEPPING		1
+
+/* Enable or disable branch tracing.  The value sets the state. */
+#define SIG_DBG_BRANCH_TRACING		2
+#endif /* ! __powerpc64__ */
+
+#endif /* _ASM_POWERPC_SIGNAL_H */

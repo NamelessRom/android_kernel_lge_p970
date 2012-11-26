@@ -1,11 +1,39 @@
-#ifndef __ASM_GENERIC_SIGNAL_H
-#define __ASM_GENERIC_SIGNAL_H
+/*
+ * Copyright (C) 2004-2006 Atmel Corporation
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+#ifndef __ASM_AVR32_SIGNAL_H
+#define __ASM_AVR32_SIGNAL_H
 
 #include <linux/types.h>
 
+/* Avoid too many header ordering problems.  */
+struct siginfo;
+
+#ifdef __KERNEL__
+/* Most things should be clean enough to redefine this at will, if care
+   is taken to make libc match.  */
+
 #define _NSIG		64
-#define _NSIG_BPW	__BITS_PER_LONG
+#define _NSIG_BPW	32
 #define _NSIG_WORDS	(_NSIG / _NSIG_BPW)
+
+typedef unsigned long old_sigset_t;		/* at least 32 bits */
+
+typedef struct {
+	unsigned long sig[_NSIG_WORDS];
+} sigset_t;
+
+#else
+/* Here we must cater to libcs that poke about in kernel headers.  */
+
+#define NSIG		32
+typedef unsigned long sigset_t;
+
+#endif /* __KERNEL__ */
 
 #define SIGHUP		 1
 #define SIGINT		 2
@@ -47,19 +75,18 @@
 
 /* These should not be considered constants from userland.  */
 #define SIGRTMIN	32
-#ifndef SIGRTMAX
-#define SIGRTMAX	_NSIG
-#endif
+#define SIGRTMAX	(_NSIG-1)
 
 /*
  * SA_FLAGS values:
  *
- * SA_ONSTACK indicates that a registered stack_t will be used.
- * SA_RESTART flag to get restarting signals (which were the default long ago)
- * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
- * SA_RESETHAND clears the handler when the signal is delivered.
- * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
- * SA_NODEFER prevents the current signal from being masked in the handler.
+ * SA_NOCLDSTOP		flag to turn off SIGCHLD when children stop.
+ * SA_NOCLDWAIT		flag on SIGCHLD to inhibit zombies.
+ * SA_SIGINFO		deliver the signal with SIGINFO structs
+ * SA_ONSTACK		indicates that a registered stack_t will be used.
+ * SA_RESTART		flag to get restarting signals (which were the default long ago)
+ * SA_NODEFER		prevents the current signal from being masked in the handler.
+ * SA_RESETHAND		clears the handler when the signal is delivered.
  *
  * SA_ONESHOT and SA_NOMASK are the historical Linux names for the Single
  * Unix names RESETHAND and NODEFER respectively.
@@ -67,6 +94,7 @@
 #define SA_NOCLDSTOP	0x00000001
 #define SA_NOCLDWAIT	0x00000002
 #define SA_SIGINFO	0x00000004
+#define SA_RESTORER	0x04000000
 #define SA_ONSTACK	0x08000000
 #define SA_RESTART	0x10000000
 #define SA_NODEFER	0x40000000
@@ -74,11 +102,6 @@
 
 #define SA_NOMASK	SA_NODEFER
 #define SA_ONESHOT	SA_RESETHAND
-
-/*
- * New architectures should not define the obsolete
- *	SA_RESTORER	0x04000000
- */
 
 /*
  * sigaltstack controls
@@ -89,32 +112,44 @@
 #define MINSIGSTKSZ	2048
 #define SIGSTKSZ	8192
 
-#ifndef __ASSEMBLY__
-typedef struct {
-	unsigned long sig[_NSIG_WORDS];
-} sigset_t;
-
-/* not actually used, but required for linux/syscalls.h */
-typedef unsigned long old_sigset_t;
-
 #include <asm-generic/signal-defs.h>
 
-#ifdef SA_RESTORER
-#define __ARCH_HAS_SA_RESTORER
-#endif
+#ifdef __KERNEL__
+struct old_sigaction {
+	__sighandler_t sa_handler;
+	old_sigset_t sa_mask;
+	unsigned long sa_flags;
+	__sigrestore_t sa_restorer;
+};
 
 struct sigaction {
 	__sighandler_t sa_handler;
 	unsigned long sa_flags;
-#ifdef SA_RESTORER
 	__sigrestore_t sa_restorer;
-#endif
 	sigset_t sa_mask;		/* mask last for extensibility */
 };
+#define __ARCH_HAS_SA_RESTORER
 
 struct k_sigaction {
 	struct sigaction sa;
 };
+#else
+/* Here we must cater to libcs that poke about in kernel headers.  */
+
+struct sigaction {
+	union {
+		__sighandler_t _sa_handler;
+		void (*_sa_sigaction)(int, struct siginfo *, void *);
+	} _u;
+	sigset_t sa_mask;
+	unsigned long sa_flags;
+	void (*sa_restorer)(void);
+};
+
+#define sa_handler	_u._sa_handler
+#define sa_sigaction	_u._sa_sigaction
+
+#endif /* __KERNEL__ */
 
 typedef struct sigaltstack {
 	void __user *ss_sp;
@@ -130,6 +165,5 @@ typedef struct sigaltstack {
 #define ptrace_signal_deliver(regs, cookie) do { } while (0)
 
 #endif /* __KERNEL__ */
-#endif /* __ASSEMBLY__ */
 
-#endif /* _ASM_GENERIC_SIGNAL_H */
+#endif
