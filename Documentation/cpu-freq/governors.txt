@@ -31,6 +31,7 @@ Contents:
 2.6  Interactive
 2.7  Hotplug
 2.8  SmartassV2
+2.9  LionHeart
 
 3.   The Governor Interface in the CPUfreq Core
 
@@ -384,6 +385,16 @@ frequency range when load is low, especially when screen is off.
 Finally, smartass is a highly customizable governor with almost everything
 tweakable through the sysfs. For a detailed explaination of each tunable,
 please see the inline comments at the begging of the code (smartass2.c).
+
+2.9 LionHeart
+---------------
+
+Lionheart is a conservative-based governor which is based on samsung's
+update3 source. The tunables (such as the thresholds and sampling rate)
+were changed so the governor behaves more like the performance one, at
+the cost of battery as the scaling is very aggressive. When it comes to
+smoothness (not considering battery drain), a tuned conservative delivers
+more as compared to a tuned ondemand.
 
 3. The Governor Interface in the CPUfreq Core
 =============================================
