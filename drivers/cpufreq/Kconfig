@@ -171,6 +171,14 @@ config CPU_FREQ_DEFAULT_GOV_SAVAGEDZEN
   	help
     	  Use the CPUFreq governor 'savaged-zen' as default.
 
+config CPU_FREQ_DEFAULT_GOV_AGGRESSIVE
+	bool "aggressive"
+	select CPU_FREQ_GOV_AGGRESSIVE
+	help
+	A modified conservative governor.
+        This features earlysuspend, hotplugging,
+        and tweaks to make it more aggressive.
+
 endchoice
 
 config CPU_FREQ_GOV_PERFORMANCE
@@ -351,6 +359,14 @@ config CPU_FREQ_GOV_SAVAGEDZEN
 	  'SavagedZen' - a "smartass" based governor
 
 	  If in doubt, say N.
+
+config CPU_FREQ_GOV_AGGRESSIVE
+	tristate "'aggressive' governor"
+	depends on CPU_FREQ
+	help
+	  'aggressive' - this governor is a modified conservative.
+
+	   If in doubt, say N.
 
 endif
 endmenu
