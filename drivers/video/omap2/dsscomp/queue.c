@@ -519,16 +519,9 @@ static int dsscomp_apply(dsscomp_t comp)
 	/* check if the display is valid and used */
 	r = -ENODEV;
 	d = &comp->frm;
-#if 1
-for (i = 0; i < cdev->num_displays; i++) {		
-	if (cdev->displays[i]->state == OMAP_DSS_DISPLAY_ACTIVE) {			
-		display_ix = i; 				   
-		break;			
-		}		
-	}
-#else	
+
 	display_ix = d->mgr.ix;
-#endif
+
 	if (display_ix >= cdev->num_displays)
 		goto done;
 	dssdev = cdev->displays[display_ix];
