@@ -659,7 +659,7 @@ void muic_udelay(u32 microsec)
 {
 	u32 microseconds;
 	microseconds = microsec;
-	udelay(microseconds);
+	mdelay(microseconds);
 }
 
 /* Initialize MUIC, i.e., the CONTROL_1,2 and SW_CONTROL registers.
