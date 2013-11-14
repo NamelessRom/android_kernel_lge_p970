@@ -1706,7 +1706,8 @@ int dsi_pll_init(struct platform_device *dsidev, bool enable_hsclk,
 	/*
 	 * Note: SCP CLK is not required on OMAP3, but it is required on OMAP4.
 	 */
-	dsi_enable_scp_clk(dsidev);
+	if (cpu_is_omap44xx())
+		dsi_enable_scp_clk(dsidev);
 /* 20120217 kyungtae.oh@lge.com, Do not Use vdds regulator[LGE_START] */
 #if !defined(CONFIG_MACH_LGE_OMAP3)
 	if (!dsi->vdds_dsi_enabled) {
@@ -1798,7 +1799,8 @@ void dsi_pll_uninit(struct platform_device *dsidev, bool disconnect_lanes)
 	}
 
 /* 20120217 kyungtae.oh@lge.com, Do not Use vdds regulator[LGE_END] */
-	dsi_disable_scp_clk(dsidev);
+	if (cpu_is_omap44xx())
+		dsi_disable_scp_clk(dsidev);
 	dsi_enable_pll_clock(dsidev, 0);
 
 	DSSDBG("PLL uninit done\n");
