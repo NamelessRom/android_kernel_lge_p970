@@ -56,7 +56,7 @@
 
 //#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 100)
 //#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 30)
-#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 35)			// youmi.jun@lge.com , workaround: increase size for ARTTOOL test (30MB -> 35MB)
+#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 20)			// youmi.jun@lge.com , workaround: increase size for ARTTOOL test (30MB -> 35MB)
 
 #define PHYS_ADDR_SMC_SIZE	(SZ_1M * 3)
 #define PHYS_ADDR_SMC_MEM	(0x80000000 + SZ_1G - PHYS_ADDR_SMC_SIZE)
@@ -69,7 +69,7 @@
 
 //#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 100)
 //#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 30)
-#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 35)			// youmi.jun@lge.com , workaround: increase size for ARTTOOL test (30MB -> 35MB)
+#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 20)			// youmi.jun@lge.com , workaround: increase size for ARTTOOL test (30MB -> 35MB)
 
 #define PHYS_ADDR_SMC_SIZE	(SZ_1M * 3)
 #define PHYS_ADDR_SMC_MEM	(0x80000000 + SZ_1G - PHYS_ADDR_SMC_SIZE)
