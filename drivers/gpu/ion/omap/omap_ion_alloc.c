@@ -61,7 +61,7 @@ int omap_ion_mem_alloc(struct ion_client *client,
 	data.flags = 1 << ION_HEAP_TYPE_CARVEOUT;
 
 	sAllocData->handle = ion_alloc(client,
-			PAGE_ALIGN(data.len), data.align, data.flags);
+			PAGE_ALIGN(data.len), data.align, 0, data.flags);
 	if (!sAllocData->handle) {
 		pr_err("%s: Failed to allocate via ion_alloc\n", __func__);
 		ret = -ENOMEM;
