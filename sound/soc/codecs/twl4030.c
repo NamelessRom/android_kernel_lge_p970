@@ -1170,7 +1170,7 @@ int get_twl4030_apll_state(void)
 
     if(twl4030->apll_enabled)
         return 1;
-     else
+    else
         return 0;
 }
 
@@ -1199,7 +1199,7 @@ int get_twl4030_headset_spk_codec_status(void)
         || twl4030->predriver_enabled || twl4030->predrivel_enabled /* CHECK SPEKER   */
        )
         return 1;
-    else
+     else
         return 0;
 }
 
@@ -3291,7 +3291,7 @@ void voice_configure_path(voice_mode_enum mode)
 #endif // #if defined(CONFIG_PRODUCT_LGE_LU6800) || defined(CONFIG_PRODUCT_LGE_KU5900) || defined (CONFIG_PRODUCT_LGE_P970)
 
 //			headset_ramp(twl4030_socdev->card->codec, 0);		//junyeop.kim@lge.com, headset ramp disable
-						     break;
+		     break;
 	    case TWL4030_HEADSET_CALL_MODE :
 			printk("[TWL4030]voice_configure_path::TWL4030_HEADSET_CALL_MODE..\n");
 	    	if(call_headset_ramp == 0)

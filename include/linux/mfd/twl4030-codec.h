@@ -327,7 +327,7 @@ void mic_configure_path(voice_mode_enum mode);
 typedef enum {
 	TWL4030_CALLREC_BUILTIN_MODE,
 	TWL4030_CALLREC_HEADSET_MODE,
-	TWL4030_CALLREC_OFF_MODE		
+	TWL4030_CALLREC_OFF_MODE
 }callrec_mode_enum;
 
 int callrec_get_curmode(void);

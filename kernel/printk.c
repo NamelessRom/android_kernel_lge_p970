@@ -44,6 +44,13 @@
 
 #include <asm/uaccess.h>
 
+#define CONFIG_VU_1_0_GLOBAL
+
+
+#ifdef CONFIG_VU_1_0_GLOBAL
+#include <linux/ktime.h>
+#endif
+
 /*
  * Architectures can override it:
  */
@@ -972,6 +979,7 @@ asmlinkage int vprintk(const char *fmt, va_list args)
 			}
 
 			if (printk_time) {
+#ifndef CONFIG_VU_1_0_GLOBAL
 				/* Add the current time stamp */
 				char tbuf[50], *tp;
 				unsigned tlen;
@@ -983,7 +991,24 @@ asmlinkage int vprintk(const char *fmt, va_list args)
 				tlen = sprintf(tbuf, "[%5lu.%06lu] ",
 						(unsigned long) t,
 						nanosec_rem / 1000);
-
+#else
+//LGE_UPDATE_S VU10 jinyoun.park@lge.com 20120607 [Kernel] Change kernel timestamp from cpu time to current time
+				char tbuf[50], *tp;
+				unsigned tlen;
+                struct timespec time;
+                struct tm tmresult;
+                time = __current_kernel_time();
+                time_to_tm(time.tv_sec,sys_tz.tz_minuteswest * 60* (-1),&tmresult);
+                tlen = sprintf(tbuf, "[%02d:%02d:%02d %02d:%02d:%02d.%03lu] ",
+                               (int)tmresult.tm_year%100,
+                               tmresult.tm_mon+1,
+                               tmresult.tm_mday,
+                               tmresult.tm_hour,
+                               tmresult.tm_min,
+                               tmresult.tm_sec,
+                               (unsigned long) time.tv_nsec/1000000);
+//LGE_UPDATE_E VU10 jinyoun.park@lge.com 20120607 [Kernel] Change kernel timestamp from cpu time to current time
+#endif
 				for (tp = tbuf; tp < tbuf + tlen; tp++)
 					emit_log_char(*tp);
 				printed_len += tlen;

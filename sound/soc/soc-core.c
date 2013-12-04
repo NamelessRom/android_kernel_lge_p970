@@ -1303,8 +1303,8 @@ int snd_soc_suspend(struct device *dev)
                         }
                      #endif   
                         else
-		snd_pcm_suspend_all(card->rtd[i].pcm);
-	}
+                            snd_pcm_suspend_all(card->rtd[i].pcm);
+                    }
                     else
                     snd_pcm_suspend_all(card->rtd[i].pcm);
                     //LGE_D1_BSP_ICS_E  seungdae.goh@lge.com 2012-04-17    [END_LGE]               
