@@ -14,5 +14,3 @@ endif
 ifeq ($(CONFIG_PRODUCT_LGE_P970),y)
 obj-$(CONFIG_MUIC_MAX14526DEEWP) += p970_muic.o
 endif
-
-

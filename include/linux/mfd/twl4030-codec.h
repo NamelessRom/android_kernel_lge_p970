@@ -296,17 +296,10 @@ typedef struct
   int data;
 } twl_reg_type;
 
-//#if defined(CONFIG_PRODUCT_LGE_KU5900)||defined(CONFIG_PRODUCT_LGE_LU6800)
-/* [LGE_CHANGE] 20120908 pyocool.cho@lge.com "p970"*/
-#if defined(CONFIG_PRODUCT_LGE_KU5900) || defined(CONFIG_PRODUCT_LGE_LU6800) || defined(CONFIG_PRODUCT_LGE_P970)
-int get_twl4030_apll_state(void);
-
-//#if defined(CONFIG_PRODUCT_LGE_KU5900)
-/* [LGE_CHANGE] 20120908 pyocool.cho@lge.com "p970"*/
-#if defined(CONFIG_PRODUCT_LGE_KU5900) || defined(CONFIG_PRODUCT_LGE_P970)
+#if defined(CONFIG_PRODUCT_LGE_KU5900)
 void set_ext_amp_mode(int mode);
 int get_twl4030_headset_spk_codec_status(void);
-#endif
+int get_twl4030_apll_state(void);
 #endif
 
 int voice_get_curmode(void);

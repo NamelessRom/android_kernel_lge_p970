@@ -368,12 +368,13 @@ static ssize_t hub_proxi_onoff_show(struct device *dev,  struct device_attribute
 	return (ssize_t)(strlen(buf) + 1);
 }
 
-/* S[, 20120922, mannsik.chung@lge.com, PM from froyo. */
-#if defined(CONFIG_PRODUCT_LGE_LU6800)
+#if 0	//SHYUN_TBD
+/* S[, 20111110, mschung@ubiquix.com, Enhanced power consumption, at playing MP3. */
 extern void omap_pm_cpu_set_freq(unsigned long f);
 extern u32 te_cpu_idle_block;
+EXPORT_SYMBOL(te_cpu_idle_block);
+/* E], 20111110, mschung@ubiquix.com, Enhanced power consumption, at playing MP3. */
 #endif
-/* E], 20120922, mannsik.chung@lge.com, PM from froyo. */
 
 static ssize_t hub_proxi_onoff_store(struct device *dev,  struct device_attribute *attr,  const char *buf, size_t count)
 {
@@ -383,11 +384,12 @@ static ssize_t hub_proxi_onoff_store(struct device *dev,  struct device_attribut
 
 	printk("[ %s ]-(%d) [IN]\n",__func__, __LINE__);
 
-/* S[, 20120922, mannsik.chung@lge.com, PM from froyo. */
-#if defined(CONFIG_PRODUCT_LGE_LU6800)
+#if 0	//SHYUN_TBD
+/* S[, 20111110, mschung@ubiquix.com, Enhanced power consumption, at playing MP3. */
+	omap_pm_cpu_set_freq(1000000000);	
 	te_cpu_idle_block = 1;
+/* E], 20111110, mschung@ubiquix.com, Enhanced power consumption, at playing MP3. */
 #endif
-/* E], 20120922, mannsik.chung@lge.com, PM from froyo. */
 
 	val = simple_strtoul(buf, NULL, 10);
 	sscanf(buf, "%d", &ret);
