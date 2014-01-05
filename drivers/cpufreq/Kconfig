@@ -88,20 +88,6 @@ config CPU_FREQ_DEFAULT_GOV_ONDEMAND
 	  governor. If unsure have a look at the help section of the
 	  driver. Fallback governor will be the performance governor.
 
-config CPU_FREQ_DEFAULT_GOV_ONDEMANDX
-	bool "ondemandx"
-	select CPU_FREQ_GOV_ONDEMANDX
-	select CPU_FREQ_GOV_PERFORMANCE
-	help
-	  Use the CPUFreq governor 'ondemand' as default. This allows
-	  you to get a full dynamic frequency capable system by simply
-	  loading your cpufreq low-level hardware driver.
-	  Be aware that not all cpufreq drivers support the ondemand
-	  governor. If unsure have a look at the help section of the
-	  driver. Fallback governor will be the performance governor.
-	  OndemandX has built in sleep profile, but not working Sysfs
-	  interface.
-
 config CPU_FREQ_DEFAULT_GOV_CONSERVATIVE
 	bool "conservative"
 	select CPU_FREQ_GOV_CONSERVATIVE
@@ -123,15 +109,6 @@ config CPU_FREQ_DEFAULT_GOV_INTERACTIVE
 	  loading your cpufreq low-level hardware driver, using the
 	  'interactive' governor for latency-sensitive workloads.
 
-config CPU_FREQ_DEFAULT_GOV_INTERACTIVEB
-	bool "interactiveb"
-	select CPU_FREQ_GOV_INTERACTIVEB
-	help
-	  Use the CPUFreq governor 'interactiveb' as default. This allows
-	  you to get a full dynamic cpu frequency capable system by simply
-	  loading your cpufreq low-level hardware driver, using the
-	  'interactiveb' governor for latency-sensitive workloads.
-
 config CPU_FREQ_DEFAULT_GOV_HOTPLUG
 	bool "hotplug"
 	select CPU_FREQ_GOV_HOTPLUG
@@ -151,25 +128,6 @@ config CPU_FREQ_DEFAULT_GOV_SMARTASS2
 	select CPU_FREQ_GOV_PERFORMANCE
 	help
 	  Use the CPUFreq governor 'Smartass2' as default.
-
-config CPU_FREQ_DEFAULT_GOV_LIONHEART
-	bool "lionheart"
-	select CPU_FREQ_GOV_LIONHEART
-	help
-	  Lionheart is a conservative-based governor which is based on
-	  samsung's update3 source. The tunables (such as the thresholds
-	  and sampling rate) were changed so the governor behaves more
-	  like the performance one, at the cost of battery as the scaling
-	  is very aggressive. When it comes to smoothness (not considering
-	  battery drain), a tuned conservative delivers more as compared to
-	  a tuned ondemand.
-
-config CPU_FREQ_DEFAULT_GOV_SAVAGEDZEN
-  	bool "savagedzen"
-  	select CPU_FREQ_GOV_SAVAGEDZEN
-	select CPU_FREQ_GOV_PERFORMANCE
-  	help
-    	  Use the CPUFreq governor 'savaged-zen' as default.
 
 config CPU_FREQ_DEFAULT_GOV_AGGRESSIVE
 	bool "aggressive"
@@ -236,24 +194,6 @@ config CPU_FREQ_GOV_ONDEMAND
 
 	  If in doubt, say N.
 
-config CPU_FREQ_GOV_ONDEMANDX
-	tristate "'ondemandx' cpufreq policy governor"
-	select CPU_FREQ_TABLE
-	help
-	  'ondemand' - This driver adds a dynamic cpufreq policy governor.
-	  The governor does a periodic polling and
-	  changes frequency based on the CPU utilization.
-	  The support for this governor depends on CPU capability to
-	  do fast frequency switching (i.e, very low latency frequency
-	  transitions).
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called cpufreq_ondemand.
-
-	  For details, take a look at linux/Documentation/cpu-freq.
-
-	  If in doubt, say N.
-
 config CPU_FREQ_GOV_INTERACTIVE
 	tristate "'interactive' cpufreq policy governor"
 	help
@@ -266,23 +206,6 @@ config CPU_FREQ_GOV_INTERACTIVE
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called cpufreq_interactive.
-
-	  For details, take a look at linux/Documentation/cpu-freq.
-
-	  If in doubt, say N.
-
-config CPU_FREQ_GOV_INTERACTIVEB
-	tristate "'interactiveb' cpufreq policy governor"
-	help
-	  'interactiveb' - This driver adds a dynamic cpufreq policy governor
-	  designed for latency-sensitive workloads.
-
-	  This governor attempts to reduce the latency of clock
-	  increases so that the system is more responsive to
-	  interactive workloads.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called cpufreq_interactiveb.
 
 	  For details, take a look at linux/Documentation/cpu-freq.
 
