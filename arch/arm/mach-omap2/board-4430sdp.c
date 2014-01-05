@@ -79,6 +79,8 @@
 #define ETH_KS8851_IRQ			34
 #define ETH_KS8851_POWER_ON		48
 #define ETH_KS8851_QUART		138
+#define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
+#define OMAP4_SFH7741_ENABLE_GPIO		188
 #define OMAP4_TOUCH_IRQ_1		35
 #define OMAP4_TOUCH_IRQ_2		36
 #define HDMI_GPIO_CT_CP_HPD		60
@@ -96,7 +98,6 @@
 #define GPIO_WIFI_IRQ		53
 #define OMAP_HDMI_HPD_ADDR	0x4A100098
 #define OMAP_HDMI_PULLTYPE_MASK	0x00000010
-
 
 static const int sdp4430_keymap[] = {
 	KEY(0, 0, KEY_E),
@@ -1023,8 +1024,9 @@ static void sdp4430_lcd_init(void)
 }
 
 static struct gpio sdp4430_hdmi_gpios[] = {
-	{HDMI_GPIO_CT_CP_HPD,  GPIOF_OUT_INIT_HIGH,    "hdmi_gpio_hpd"   },
-	{HDMI_GPIO_LS_OE,      GPIOF_OUT_INIT_HIGH,    "hdmi_gpio_ls_oe" },
+	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
+	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_ls_oe" },
+	{ HDMI_GPIO_HPD, GPIOF_DIR_IN, "hdmi_gpio_hpd" },
 };
 
 
@@ -1108,6 +1110,15 @@ static struct omap_dss_device sdp4430_lcd_device = {
 	.skip_init = false,
 };
 
+static void sdp4430_panel_disable_hdmi(struct omap_dss_device *dssdev)
+{
+	gpio_free_array(sdp4430_hdmi_gpios, ARRAY_SIZE(sdp4430_hdmi_gpios));
+}
+
+static struct omap_dss_hdmi_data sdp4430_hdmi_data = {
+	.hpd_gpio = HDMI_GPIO_HPD,
+};
+
 static struct omap_dss_device sdp4430_hdmi_device = {
 	.name = "hdmi",
 	.driver_name = "hdmi_panel",
@@ -1122,7 +1133,10 @@ static struct omap_dss_device sdp4430_hdmi_device = {
 		},
 	},
 	.hpd_gpio = HDMI_GPIO_HPD,
+	.platform_enable = sdp4430_panel_enable_hdmi,
+	.platform_disable = sdp4430_panel_disable_hdmi,
 	.channel = OMAP_DSS_CHANNEL_DIGIT,
+	.data = &sdp4430_hdmi_data,
 };
 
 static struct omap_dss_device *sdp4430_dss_devices[] = {
@@ -1155,6 +1169,10 @@ static void omap_4430sdp_display_init(void)
 	omap_vram_set_sdram_vram(BLAZE_FB_RAM_SIZE, 0);
 	omapfb_set_platform_data(&blaze_fb_pdata);
 	omap_display_init(&sdp4430_dss_data);
+
+	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
+	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
+	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
 }
 
 #ifdef CONFIG_OMAP_MUX

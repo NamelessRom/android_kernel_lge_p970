@@ -69,7 +69,7 @@
 #define GPIO_HUB_NRESET		62
 #define GPIO_WIFI_PMENA		43
 #define GPIO_WIFI_IRQ		53
-#define HDMI_GPIO_CT_CP_HPD     60
+#define HDMI_GPIO_CT_CP_HPD     60 /* HPD mode enable/disable */
 #define HDMI_GPIO_HPD 63 /* Hot plug pin for HDMI */
 #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
 #define TPS62361_GPIO   7 /* VCORE1 power control */
@@ -653,8 +653,9 @@ int __init omap4_panda_dvi_init(void)
 }
 
 static struct gpio panda_hdmi_gpios[] = {
-	{ HDMI_GPIO_CT_CP_HPD,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_hpd"   },
+	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ls_oe" },
+	{ HDMI_GPIO_HPD, GPIOF_DIR_IN, "hdmi_gpio_hpd" },
 };
 
 static void omap4_panda_hdmi_mux_init(void)
@@ -685,8 +686,19 @@ static void omap4_panda_hdmi_mux_init(void)
 	status = gpio_request_array(panda_hdmi_gpios,
 			ARRAY_SIZE(panda_hdmi_gpios));
 	if (status)
-		pr_err("%s: Cannot request HDMI GPIOs %x \n", __func__, status);
+		pr_err("Cannot request HDMI GPIOs\n");
+
+	return status;
 }
+
+static void omap4_panda_panel_disable_hdmi(struct omap_dss_device *dssdev)
+{
+	gpio_free_array(panda_hdmi_gpios, ARRAY_SIZE(panda_hdmi_gpios));
+}
+
+static struct omap_dss_hdmi_data omap4_panda_hdmi_data = {
+	.hpd_gpio = HDMI_GPIO_HPD,
+};
 
 static struct omap_dss_device  omap4_panda_hdmi_device = {
 	.name = "hdmi",
@@ -703,6 +715,7 @@ static struct omap_dss_device  omap4_panda_hdmi_device = {
 	},
 	.hpd_gpio = HDMI_GPIO_HPD,
 	.channel = OMAP_DSS_CHANNEL_DIGIT,
+	.data = &omap4_panda_hdmi_data,
 };
 
 static struct omap_dss_device *omap4_panda_dss_devices[] = {
@@ -743,6 +756,10 @@ void omap4_panda_display_init(void)
 
 	omap4_panda_hdmi_mux_init();
 	omap_display_init(&omap4_panda_dss_data);
+
+	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
+	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
+	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
 }
 
 
