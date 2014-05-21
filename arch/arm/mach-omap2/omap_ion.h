@@ -20,18 +20,18 @@
 
 // LGE_CHANGE_S kibum.lee@lge.com 512M settings
 /*
- ___      _______    _______  __   __  _______  _______  _______    _______  ____   _______  __   __   
-|   |    |       |  |       ||  |_|  ||   _   ||       ||       |  |       ||    | |       ||  |_|  |  
-|   |    |    ___|  |   _   ||       ||  |_|  ||    _  ||___    |  |   ____| |   | |____   ||       |  
-|   |    |   | __   |  | |  ||       ||       ||   |_| | ___|   |  |  |____  |   |  ____|  ||       |  
-|   |___ |   ||  |  |  |_|  ||       ||       ||    ___||___    |  |_____  | |   | | ______||       |  
-|       ||   |_| |  |       || ||_|| ||   _   ||   |     ___|   |   _____| | |   | | |_____ | ||_|| |  
-|_______||_______|  |_______||_|   |_||__| |__||___|    |_______|  |_______| |___| |_______||_|   |_|  
+ ___      _______    _______  __   __  _______  _______  _______    _______  ____   _______  __   __
+|   |    |       |  |       ||  |_|  ||   _   ||       ||       |  |       ||    | |       ||  |_|  |
+|   |    |    ___|  |   _   ||       ||  |_|  ||    _  ||___    |  |   ____| |   | |____   ||       |
+|   |    |   | __   |  | |  ||       ||       ||   |_| | ___|   |  |  |____  |   |  ____|  ||       |
+|   |___ |   ||  |  |  |_|  ||       ||       ||    ___||___    |  |_____  | |   | | ______||       |
+|       ||   |_| |  |       || ||_|| ||   _   ||   |     ___|   |   _____| | |   | | |_____ | ||_|| |
+|_______||_______|  |_______||_|   |_||__| |__||___|    |_______|  |_______| |___| |_______||_|   |_|
 
- _______  _______  _______  _______  ___   __    _  _______  _______ 
+ _______  _______  _______  _______  ___   __    _  _______  _______
 |       ||       ||       ||       ||   | |  |  | ||       ||       |
 |  _____||    ___||_     _||_     _||   | |   |_| ||    ___||  _____|
-| |_____ |   |___   |   |    |   |  |   | |       ||   | __ | |_____ 
+| |_____ |   |___   |   |    |   |  |   | |       ||   | __ | |_____
 |_____  ||    ___|  |   |    |   |  |   | |  _    ||   ||  ||_____  |
  _____| ||   |___   |   |    |   |  |   | | | |   ||   |_| | _____| |
 |_______||_______|  |___|    |___|  |___| |_|  |__||_______||_______|
@@ -42,21 +42,22 @@
 -------------------------------------
 |     OMAP3_ION(100M) -> (30M)      |
 -------------------------------------
-|/////// free 67M -> 137M  /////////| 
+|/////// free 67M -> 137M  /////////|
 -------------------------------------
 |        OMAP3_RAMCONSOL (2M)       |
 -------------------------------------
 |////////// Android 340M ///////////|
 ------------------------------------- 0x80000000(2G) // Start Addr
 */
-#if defined(CONFIG_MACH_LGE_HUB) 
+#if defined(CONFIG_MACH_LGE_HUB)
 
 #define OMAP_RAM_CONSOLE_START	(PLAT_PHYS_OFFSET + SZ_1M * 340)
 #define OMAP_RAM_CONSOLE_SIZE	SZ_2M
 
 //#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 100)
 //#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 30)
-#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 20)			// youmi.jun@lge.com , workaround: increase size for ARTTOOL test (30MB -> 35MB)
+//#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 35)			// youmi.jun@lge.com , workaround: increase size for ARTTOOL test (30MB -> 35MB)
+#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 20)			// eviscerationls@gmail.com , free 15MB RAM, set the size to 20MB
 
 #define PHYS_ADDR_SMC_SIZE	(SZ_1M * 3)
 #define PHYS_ADDR_SMC_MEM	(0x80000000 + SZ_1G - PHYS_ADDR_SMC_SIZE)
@@ -69,7 +70,8 @@
 
 //#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 100)
 //#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 30)
-#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 20)			// youmi.jun@lge.com , workaround: increase size for ARTTOOL test (30MB -> 35MB)
+//#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 35)			// youmi.jun@lge.com , workaround: increase size for ARTTOOL test (30MB -> 35MB)
+#define OMAP3_ION_HEAP_CARVEOUT_INPUT_SIZE       (SZ_1M * 20)			// eviscerationls@gmail.com , free 15MB RAM, set the size to 20MB
 
 #define PHYS_ADDR_SMC_SIZE	(SZ_1M * 3)
 #define PHYS_ADDR_SMC_MEM	(0x80000000 + SZ_1G - PHYS_ADDR_SMC_SIZE)

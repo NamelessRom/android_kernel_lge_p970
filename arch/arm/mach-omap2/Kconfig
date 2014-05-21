@@ -354,6 +354,12 @@ config BRCM_BT_WAKE
        depends on BRCM_LPM		
 # Bluetooth chanha.park@lge.com-[e]       
 
+config CPU_OVERCLOCK
+	bool "CPU Overclock"
+	default n
+	---help---
+		Support for CPU Overclock
+
 config MACH_CM_T35
 	bool "CompuLab CM-T35 module"
 	depends on ARCH_OMAP3
