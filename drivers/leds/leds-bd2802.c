@@ -247,9 +247,9 @@ enum WAVE {
 	WAVE_11111111 = 15,	// 12121212
 };
 
-#define PATTERN_LED_MAX { .value = BD2802_CURRENT_MAX, .invert = 1, .wave = WAVE_8 }
-#define PATTERN_LED_OFF { .value = 0 , .invert = 0, .wave = WAVE_8 }
-#define PATTERN_LED_BLINK { .value = BD2802_CURRENT_MAX, .invert = 0, .wave = WAVE_44 }
+#define LED_MAX { .value = BD2802_CURRENT_MAX, .invert = 1, .wave = WAVE_8 }
+#define LED_OFF { .value = 0 , .invert = 0, .wave = WAVE_8 }
+#define LED_BLINK { .value = BD2802_CURRENT_MAX, .invert = 0, .wave = WAVE_44 }
 
 static const struct pattern all_on = {
 	.type = PATTERN_ALL_ON,
@@ -258,12 +258,12 @@ static const struct pattern all_on = {
 	.cycle_length = CYCLE_16_8_S,
 	.operation = OPERATION_PERIODIC,
 	.led_settings = {
-		[MENU] = PATTERN_LED_MAX,
-		[HOME] = PATTERN_LED_MAX,
-		[BACK] = PATTERN_LED_MAX,
-		[SEARCH] = PATTERN_LED_MAX,
-		[BLUELEFT] = PATTERN_LED_MAX,
-		[BLUERIGHT] = PATTERN_LED_MAX,
+		[MENU] = LED_MAX,
+		[HOME] = LED_MAX,
+		[BACK] = LED_MAX,
+		[SEARCH] = LED_MAX,
+		[BLUELEFT] = LED_MAX,
+		[BLUERIGHT] = LED_MAX,
 	}
 };
 static const struct pattern blue_on = {
@@ -273,12 +273,12 @@ static const struct pattern blue_on = {
 	.cycle_length = CYCLE_16_8_S,
 	.operation = OPERATION_PERIODIC,
 	.led_settings = {
-		[MENU] = PATTERN_LED_OFF,
-		[HOME] = PATTERN_LED_OFF,
-		[BACK] = PATTERN_LED_OFF,
-		[SEARCH] = PATTERN_LED_OFF,
-		[BLUELEFT] = PATTERN_LED_MAX,
-		[BLUERIGHT] = PATTERN_LED_MAX,
+		[MENU] = LED_OFF,
+		[HOME] = LED_OFF,
+		[BACK] = LED_OFF,
+		[SEARCH] = LED_OFF,
+		[BLUELEFT] = LED_MAX,
+		[BLUERIGHT] = LED_MAX,
 	}
 };
 static const struct pattern all_blinking = {
@@ -288,12 +288,12 @@ static const struct pattern all_blinking = {
 	.cycle_length = CYCLE_2_10_S,
 	.operation = OPERATION_PERIODIC,
 	.led_settings = {
-		[MENU] = PATTERN_LED_BLINK,
-		[HOME] = PATTERN_LED_BLINK,
-		[BACK] = PATTERN_LED_BLINK,
-		[SEARCH] = PATTERN_LED_BLINK,
-		[BLUELEFT] = PATTERN_LED_BLINK,
-		[BLUERIGHT] = PATTERN_LED_BLINK,
+		[MENU] = LED_BLINK,
+		[HOME] = LED_BLINK,
+		[BACK] = LED_BLINK,
+		[SEARCH] = LED_BLINK,
+		[BLUELEFT] = LED_BLINK,
+		[BLUERIGHT] = LED_BLINK,
 	}
 };
 
@@ -305,12 +305,12 @@ static const struct pattern all_blinking = {
 	.cycle_length = CYCLE_16_8_S, \
 	.operation = OPERATION_PERIODIC, \
 	.led_settings = { \
-		[l0] = PATTERN_LED_OFF, \
-		[l1] = PATTERN_LED_MAX, \
-		[l2] = PATTERN_LED_MAX, \
-		[l3] = PATTERN_LED_MAX, \
-		[l4] = PATTERN_LED_MAX, \
-		[l5] = PATTERN_LED_MAX, \
+		[l0] = LED_OFF, \
+		[l1] = LED_MAX, \
+		[l2] = LED_MAX, \
+		[l3] = LED_MAX, \
+		[l4] = LED_MAX, \
+		[l5] = LED_MAX, \
 	} \
 }
 static const struct pattern all_on_but[] = {
@@ -327,12 +327,12 @@ static const struct pattern all_off = {
 	.cycle_length = CYCLE_131_MS,
 	.operation = OPERATION_ONCE,
 	.led_settings = {
-		[MENU] = PATTERN_LED_OFF,
-		[HOME] = PATTERN_LED_OFF,
-		[BACK] = PATTERN_LED_OFF,
-		[SEARCH] = PATTERN_LED_OFF,
-		[BLUELEFT] = PATTERN_LED_OFF,
-		[BLUERIGHT] = PATTERN_LED_OFF,
+		[MENU] = LED_OFF,
+		[HOME] = LED_OFF,
+		[BACK] = LED_OFF,
+		[SEARCH] = LED_OFF,
+		[BLUELEFT] = LED_OFF,
+		[BLUERIGHT] = LED_OFF,
 	}
 };
 
@@ -722,7 +722,7 @@ static const struct device_attribute *bd2802_attributes[] = {
 static void bd2802_on_resume(struct bd2802_led *bd2802_led)
 {
 	bd2802_enable(bd2802_led);
-	bd2802_set_pattern(bd2802_led, &blue_on, ACTION_OTHER);
+	bd2802_set_pattern(bd2802_led, &blue_on, ACTION_TOUCHKEY);
 	schedule_delayed_work(&bd2802_led->touchkey_delayed_on_work, msecs_to_jiffies(1500));
 }
 
