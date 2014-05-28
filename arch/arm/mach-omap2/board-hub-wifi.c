@@ -112,7 +112,7 @@ struct wifi_platform_data hub_wifi_control = {
 #ifdef CONFIG_WIFI_CONTROL_FUNC
 static struct resource hub_wifi_resources[] = {
 	[0] = {
-		.name		= "device_wifi_irq",
+		.name		= "bcmdhd_wlan_irq",
 		.start		= OMAP_GPIO_IRQ(HUB_WIFI_IRQ_GPIO),
 		.end		= OMAP_GPIO_IRQ(HUB_WIFI_IRQ_GPIO),
 		.flags		= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL | IORESOURCE_IRQ_SHAREABLE,
@@ -120,7 +120,7 @@ static struct resource hub_wifi_resources[] = {
 };
 
 static struct platform_device hub_wifi_device = {
-	.name		= "device_wifi",
+	.name		= "bcmdhd_wlan",
 	.id		= 1,
 	.num_resources	= ARRAY_SIZE(hub_wifi_resources),
 	.resource	= hub_wifi_resources,
