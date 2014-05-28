@@ -780,7 +780,7 @@ static int wifi_probe(struct platform_device *pdev)
 			IORESOURCE_IRQ, "bcm4329_wlan_irq");
 	wifi_control_data = wifi_ctrl;
 
-	wifi_set_power(1, 0);	/* Power On */
+	wifi_set_power(1, 200);	/* Power On */
 	wifi_set_carddetect(1);	/* CardDetect (0->1) */
 
 	up(&wifi_control_sem);
@@ -795,7 +795,7 @@ static int wifi_remove(struct platform_device *pdev)
 	DHD_ERROR(("## %s\n", __FUNCTION__));
 	wifi_control_data = wifi_ctrl;
 
-	wifi_set_power(0, 0);	/* Power Off */
+	wifi_set_power(0, 200);	/* Power Off */
 	wifi_set_carddetect(0);	/* CardDetect (1->0) */
 
 	up(&wifi_control_sem);
