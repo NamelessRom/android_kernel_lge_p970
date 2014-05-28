@@ -713,9 +713,9 @@ static chanspec_t wl_cfg80211_get_shared_freq(struct wiphy *wiphy)
 				chspec = wf_chspec_aton(WL_P2P_TEMP_CHAN);
 		}
 		else {
-				bss = (struct wl_bss_info *) (wl->extra_buf + 4);
-				chspec =  bss->chanspec;
-				WL_DBG(("Valid BSS Found. chanspec:%d \n", bss->chanspec));
+			bss = (struct wl_bss_info *) (wl->extra_buf + 4);
+			chspec =  bss->chanspec;
+			WL_DBG(("Valid BSS Found. chanspec:%d \n", bss->chanspec));
 		}
 		return chspec;
 	}
@@ -3411,8 +3411,6 @@ wl_cfg80211_remain_on_channel(struct wiphy *wiphy, struct net_device *dev,
 	if (id == 0)
 		id = ++wl->last_roc_id;
 	*cookie = id;
-	cfg80211_ready_on_channel(dev, *cookie, channel,
-		channel_type, duration, GFP_KERNEL);
 	if (wl->p2p && !wl->p2p->on) {
 		get_primary_mac(wl, &primary_mac);
 		wl_cfgp2p_generate_bss_mac(&primary_mac, &wl->p2p->dev_addr, &wl->p2p->int_addr);
@@ -5366,6 +5364,7 @@ static s32 wl_update_bss_info(struct wl_priv *wl, struct net_device *ndev)
 	s32 dtim_period;
 	size_t ie_len;
 	u8 *ie;
+	u8 *ssidie;
 	u8 *curbssid;
 	s32 err = 0;
 	struct wiphy *wiphy;
@@ -5397,6 +5396,13 @@ static s32 wl_update_bss_info(struct wl_priv *wl, struct net_device *ndev)
 			err = -EIO;
 			goto update_bss_info_out;
 		}
+
+		ie = ((u8 *)bi) + bi->ie_offset;
+		ie_len = bi->ie_length;
+		ssidie = (u8 *)cfg80211_find_ie(WLAN_EID_SSID, ie, ie_len);
+		if (ssidie && ssidie[1] == bi->SSID_len && !ssidie[2] && bi->SSID[0])
+			memcpy(ssidie + 2, bi->SSID, bi->SSID_len);
+
 		err = wl_inform_single_bss(wl, bi);
 		if (unlikely(err))
 			goto update_bss_info_out;
