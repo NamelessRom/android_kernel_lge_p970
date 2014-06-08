@@ -124,35 +124,20 @@ extern unsigned int system_rev;
 
 static u8 mirror_reg[MAX_LDO_REG] = {0,};
 
-
-#if 1 //changhyun.han@lge.com, 20100119 ,added the optimized brightness mode
-enum {
-	NORMAL_MODE,
-	ALS_MODE,
-	POWERSAVE_MODE,
-	OPTIMIZE_MODE,
-};
-
-#else
 enum {
 	NORMAL_MODE,
 	ALS_MODE,
 };
 
-#endif
-
 enum {
-	SLEEP_STATE,	// backlight off
-	WAKE_STATE,	// backlight on
+	SLEEP_STATE, // backlight off
+	WAKE_STATE, // backlight on
 };
 
 struct aat2870_device {
 	struct i2c_client *client;
 	struct backlight_device *bl_dev;
 	struct led_classdev *led;
-	struct hrtimer als_timer;
-	struct work_struct  als_work;
-	struct workqueue_struct	 	*als_wq;
 
 	int level;
 	int state;
@@ -245,65 +230,55 @@ struct lcd_ctrl_data {
 	unsigned char val;
 };
 
-static struct lcd_ctrl_data normal_to_als_mode[]=
+/*
+ * Datasheet can be found at:
+ * http://www1.futureelectronics.com/doc/ANALOGICTECH%20-%20AATI/AAT2870IUW-DB1.pdf
+ * Brightness values calculated from following python code:
+ * lvl_min = 0x04 # about 2 mA
+ * lvl_max = 0x7f # about 28 mA
+ * reg_offset = 18
+ * lvl = lambda reg: int(round(lvl_min * pow(float(lvl_max) / lvl_min, reg / 15.)))
+ * print '\n'.join(['{AAT2870_REG%d, 0x%02x},' % (reg_offset + i, lvl(i)) for i in range(16)])
+ *
+ * Values for configuration registers (REG14 - REG16) determined by experiments.
+ */
+static struct lcd_ctrl_data to_als_mode[]=
 {
-	{AAT2870_REG18,0x12},	// 4.05mA //change 0x12 < 0x0E
- 	{AAT2870_REG19,0x15},	// 4.725mA
-	{AAT2870_REG20,0x17},	// 5.175mA
-	{AAT2870_REG21,0x19},	// 5.625mA
-	{AAT2870_REG22,0x1A},	// 5.85mA
- 	{AAT2870_REG23,0x1B},	// 6.075mA
- 	{AAT2870_REG24,0x1D},	// 6.525mA
-	{AAT2870_REG25,0x20},	// 7.2mA
- 	{AAT2870_REG26,0x21},	// 7.425mA
- 	{AAT2870_REG27,0x23},	// 7.875mA
-	{AAT2870_REG28,0x25},	// 8.325mA
-	{AAT2870_REG29,0x26},	// 8.55mA
-	{AAT2870_REG30,0x27},	// 8.775mA
-	{AAT2870_REG31,0x28},	// 9mA
-	{AAT2870_REG32,0x29},	// 9.225mA
-	{AAT2870_REG33,0x2A},	// 9.45mA
- 	{AAT2870_REG14,0x77},
- 	{AAT2870_REG15,0x01},
-	{AAT2870_REG16,0x95},
-	{AAT2870_REG0,0xFF},
-	{I2C_NO_REG, 0x00}  /* End of array */
+	// brightness registers with values
+	// those values can be overwritten by sysfs als_brightness_levels
+        {AAT2870_REG18, 0x04},
+        {AAT2870_REG19, 0x05},
+        {AAT2870_REG20, 0x06},
+        {AAT2870_REG21, 0x08},
+        {AAT2870_REG22, 0x0a},
+        {AAT2870_REG23, 0x0d},
+        {AAT2870_REG24, 0x10},
+        {AAT2870_REG25, 0x14},
+        {AAT2870_REG26, 0x19},
+        {AAT2870_REG27, 0x20},
+        {AAT2870_REG28, 0x28},
+        {AAT2870_REG29, 0x33},
+        {AAT2870_REG30, 0x40},
+        {AAT2870_REG31, 0x50},
+        {AAT2870_REG32, 0x65},
+        {AAT2870_REG33, 0x7f},
 
-};
-//changhyun.han@lge.com, 20100119 ,added the optimized brightness mode
-static struct lcd_ctrl_data normal_to_als_optimize_mode[]=
-{
-	{AAT2870_REG18,0x1A}, /* ALS current setting  5.85  mA */
-	{AAT2870_REG19,0x22}, /* ALS current setting  7.65  mA */
-	{AAT2870_REG20,0x24}, /* ALS current setting  8.10  mA */
-	{AAT2870_REG21,0x28}, /* ALS current setting  9.00  mA */
-	{AAT2870_REG22,0x29}, /* ALS current setting  9.225 mA */
-	{AAT2870_REG23,0x2D}, /* ALS current setting 10.125 mA */
-	{AAT2870_REG24,0x2F}, /* ALS current setting 10.575 mA */
-	{AAT2870_REG25,0x30}, /* ALS current setting 10.80  mA */
-	{AAT2870_REG26,0x3B}, /* ALS current setting 13.275 mA */
-	{AAT2870_REG27,0x3E}, /* ALS current setting 13.95  mA */
-	{AAT2870_REG28,0x41}, /* ALS current setting 14.625 mA */
-	{AAT2870_REG29,0x41}, /* ALS current setting 14.625 mA */
-	{AAT2870_REG30,0x41}, /* ALS current setting 14.625 mA */
-	{AAT2870_REG31,0x42}, /* ALS current setting 14.85  mA */
-	{AAT2870_REG32,0x42}, /* ALS current setting 14.85  mA */
-	{AAT2870_REG33,0x5C}, /* ALS current setting 20.70  mA */
-	{AAT2870_REG14,0x67},
-	{AAT2870_REG15,0x01},
-#if 1
-	{AAT2870_REG16,0x97},
-#else  // kyungrae.jo, 2011-03-11, HW TEST
-	{AAT2870_REG16,0xB7},
-#endif
-	{AAT2870_REG0,0xFF},
+	// configuration registers
+	{AAT2870_REG14, 0x77},
+	{AAT2870_REG15, 0x01},
+	{AAT2870_REG16, 0x90},
+
+	{AAT2870_REG0, 0xFF},
 	{I2C_NO_REG, 0x00}  /* End of array */
 };
 
-static struct lcd_ctrl_data als_to_normal_mode[]=
+#define BRIGHTNESS_REGS 16
+
+static struct lcd_ctrl_data to_normal_mode[]=
 {
 	{AAT2870_REG14,0x26},
 	{AAT2870_REG15,0x06},
+
 	{AAT2870_REG0,0xFF},
 	{I2C_NO_REG, 0x00}  /* End of array */
 };
@@ -948,17 +923,15 @@ ssize_t lcd_backlight_store_level(struct device *dev,
 static void aat2870_change_mode(struct i2c_client *client, int mode, int force)
 {
 	struct aat2870_device *dev = NULL;
-	struct lcd_ctrl_data *als_seq;
-	struct lcd_ctrl_data *normal_seq;
-	struct lcd_ctrl_data *als_optimize_seq;//changhyun.han@lge.com, 20100119 ,added the optimized brightness mode
-
+	struct lcd_ctrl_data *seq =
+		mode == ALS_MODE ? to_als_mode : to_normal_mode;
 	int i;
 
 	dev = (struct aat2870_device *) i2c_get_clientdata(client);
-
-	als_seq=normal_to_als_mode;
-	normal_seq=als_to_normal_mode;
-	als_optimize_seq = normal_to_als_optimize_mode;//changhyun.han@lge.com, 20100119 ,added the optimized brightness mode
+	if (mode != ALS_MODE && mode != NORMAL_MODE) {
+		ERR("invalid mode = %d\n", mode);
+		return;
+	}
 
 	/*
 	 * The external ambient light sensor is powered by the SBIAS output
@@ -971,70 +944,26 @@ static void aat2870_change_mode(struct i2c_client *client, int mode, int force)
 	 * write/read Bit = 1.
 	 */
 
-	if (early_bl_timer!=1)
-	{
-		dev->mode=mode;
+	if (early_bl_timer != 1) {
+		dev->mode = mode;
 		return;
 	}
-    if (mode==ALS_MODE)
-    {
-    	mode=POWERSAVE_MODE; //ALS_MODE == POWERSAVE_MODE
-    }
 
-	if (force == 0)
-	{
-	if (mode ==dev->mode)
-	{
-		DBG("The mode is same, don't update register\n");
-		return;
-	}
+	if (force == 0) {
+		if (mode == dev->mode) {
+			DBG("The mode is same, don't update register\n");
+			return;
+		}
 	}
 
-	if (mode == ALS_MODE)
-	{
-		for (i = 0; als_seq[i].reg != I2C_NO_REG; i++)
-		{
-			aat2870_write_reg(client,als_seq[i].reg, als_seq[i].val);
-			DBG("reg =0x%x, val=0x%x\n",als_seq[i].reg,als_seq[i].val);
-			mdelay(1);
-		}
-			mdelay(5);
-		dev->mode=ALS_MODE;
+	for (i = 0; seq[i].reg != I2C_NO_REG; i++) {
+		aat2870_write_reg(client, seq[i].reg, seq[i].val);
+		mdelay(1);
 	}
-	else if (mode == NORMAL_MODE)
-	{
-		for (i = 0; normal_seq[i].reg != I2C_NO_REG; i++)
-		{
-			aat2870_write_reg(client,normal_seq[i].reg, normal_seq[i].val);
-			mdelay(1);
-		}
-			mdelay(5);
-		dev->mode=NORMAL_MODE;
+	mdelay(5);
+	dev->mode = mode;
+	if (mode == NORMAL_MODE) {
 		aat2870_set_main_current_level(client, cur_main_lcd_level);
-	}
-	else if (mode == POWERSAVE_MODE) //changhyun.han@lge.com, 20100119 ,added the optimized brightness mode
-	{
-		for (i = 0; als_seq[i].reg != I2C_NO_REG; i++)
-		{
-			aat2870_write_reg(client,als_seq[i].reg, als_seq[i].val);
-			mdelay(1);
-		}
-			mdelay(5);
-		dev->mode=ALS_MODE;//ALS is Powersave mode
-	}
-	else if (mode == OPTIMIZE_MODE)
-	{
-		for (i = 0; als_optimize_seq[i].reg != I2C_NO_REG; i++)
-		{
-			aat2870_write_reg(client,als_optimize_seq[i].reg, als_optimize_seq[i].val);
-			mdelay(1);
-		}
-			mdelay(5);
-		dev->mode=POWERSAVE_MODE;
-		}
-	else {
-		ERR("invalid mode = %d\n", mode);
-		return;
 	}
 
 	dev->mode = mode;
@@ -1043,40 +972,17 @@ static void aat2870_change_mode(struct i2c_client *client, int mode, int force)
 	return;
 }
 
-static void als_work_func(struct work_struct *work)
+static int aat2870_get_als_level(struct aat2870_device *drvdata)
 {
-	struct aat2870_device *drvdata = container_of(work, struct aat2870_device, als_work);
 	unsigned char val = 0;
+	int als_level = 0;
 
-	/* 20110305 seven.kim@lge.com late_resume_lcd [START] */
-	if(gpio_get_value(LCD_CP_EN) == 0)
-		printk("%s : CP EN is LOW \n",__func__);
-	else
-	{
-		aat2870_read_reg(drvdata->client, AAT2870_REG17, &val);
-		drvdata->als_level=val;
-		DBG("drvdata->als_level=%x\n",drvdata->als_level);
-	}
-	/* 20110305 seven.kim@lge.com late_resume_lcd [END] */
+	aat2870_read_reg(drvdata->client, AAT2870_REG17, &val);
+	als_level = (unsigned int)val >> 3;
+	DBG("drvdata->als_level=%x\n", als_level);
+
+	return als_level;
 }
-
-static enum hrtimer_restart als_timer_func(struct hrtimer *timer)
-{
-	struct aat2870_device *drvdata = container_of(timer, struct aat2870_device, als_timer);
-
-	DBG("\n");
-	queue_work(drvdata->als_wq, &drvdata->als_work);
-
-	if ((drvdata->mode==ALS_MODE)&&(early_bl_timer==1))
-		{
-
-		hrtimer_start(&drvdata->als_timer, ktime_set(0,500000000), HRTIMER_MODE_REL); /* 250msec */
-		}
-
-
-	return HRTIMER_NORESTART;
-}
-
 
 ssize_t aat2870_show_als(struct device *dev,
 			 struct device_attribute *attr,
@@ -1089,38 +995,8 @@ ssize_t aat2870_show_als(struct device *dev,
 		return 0;
 	}
 
-#if 1 //changhyun.han@lge.com, 20100119 ,added the optimized brightness mode
-	if(drvdata->mode == NORMAL_MODE)
-			r = snprintf(buf, PAGE_SIZE, "%s\n","0");
-	else if(drvdata->mode == ALS_MODE)
-			r = snprintf(buf, PAGE_SIZE, "%s\n","1");
-	else
-			r = snprintf(buf, PAGE_SIZE, "%s\n","0");
-#else
 	r = snprintf(buf, PAGE_SIZE, "%s\n",
 			(drvdata->mode == ALS_MODE) ? "1" : "0");
-#endif
-	return r;
-}
-
-//changhyun.han@lge.com, 20100119 ,added the optimized brightness mode
-ssize_t aat2870_show_als_option(struct device *dev,
-			 struct device_attribute *attr,
-			 char *buf)
-{
-	struct aat2870_device *drvdata = dev_get_drvdata(dev->parent);
-	int r;
-
-	if (!drvdata) {
-		return 0;
-	}
-	if(drvdata->mode == POWERSAVE_MODE)
-			r = snprintf(buf, PAGE_SIZE, "%s\n","0");
-	else if(drvdata->mode == OPTIMIZE_MODE)
-			r = snprintf(buf, PAGE_SIZE, "%s\n","1");
-	else
-			r = snprintf(buf, PAGE_SIZE, "%s\n","0");
-
 	return r;
 }
 
@@ -1142,65 +1018,19 @@ ssize_t aat2870_store_als(struct device *dev,
 	value = simple_strtoul(buf, NULL, 10);
 	DBG("value = %x\n", value);
 
-	if (value==1) {
+	if (value == 1) {
 		als_mode = ALS_MODE;
-	}
-	else if(value==0)
-	{
+	} else if (value == 0) {
 		als_mode = NORMAL_MODE;
-	}
-	else
-	{
-		DBG("value is not valid \n");
+	} else {
+		DBG("value is not valid\n");
 		return -EINVAL;
 	}
 
-	aat2870_change_mode(drvdata->client, als_mode,0);
-//	aat2870_read_reg(drvdata->client, AAT2870_REG17, &drvdata->als_level);
-//	DBG("drvdata->als_level = %x\n", drvdata->als_level);
-	hrtimer_start(&drvdata->als_timer, ktime_set(0,500000000), HRTIMER_MODE_REL); //20100304 seven.kim@lge.com late_reaume_lcd changed 100ms -> 500ms
+	aat2870_change_mode(drvdata->client, als_mode, 0);
 
 	return count;
 }
-
-//changhyun.han@lge.com, 20100119 ,added the optimized brightness mode
-ssize_t aat2870_store_als_option(struct device *dev,
-			  struct device_attribute *attr,
-			  const char *buf,
-			  size_t count)
-{
-	int value = 0;
-	int als_mode = 0;
-
-	struct aat2870_device *drvdata = dev_get_drvdata(dev->parent);
-
-	DBG("buf = %s\n", buf);
-
-	if (!count) {
-		return -EINVAL;
-	}
-	value = simple_strtoul(buf, NULL, 10);
-	DBG("value = %x\n", value);
-
-	if (value==0) {
-		als_mode = POWERSAVE_MODE;
-	}
-	else if(value==1)
-	{
-		als_mode = OPTIMIZE_MODE;
-	}
-	else
-	{
-		DBG("value is not valid \n");
-		return -EINVAL;
-	}
-
-	aat2870_change_mode(drvdata->client, als_mode,0);
-//	hrtimer_start(&drvdata->als_timer, ktime_set(0,100000000), HRTIMER_MODE_REL); /* 100msec */
-
-	return count;
-}
-
 
 ssize_t aat2870_show_als_level(struct device *dev,
 			       struct device_attribute *attr,
@@ -1208,6 +1038,7 @@ ssize_t aat2870_show_als_level(struct device *dev,
 {
 	struct aat2870_device *drvdata = NULL;
 	int r = 0;
+	int als_level = 0;
 
 	drvdata = dev_get_drvdata(dev->parent);
 
@@ -1215,12 +1046,9 @@ ssize_t aat2870_show_als_level(struct device *dev,
 		return 0;
 	}
 
-	queue_work(drvdata->als_wq, &drvdata->als_work);//20100127,changhyun.han@lge.com
-    if (drvdata->mode==NORMAL_MODE)
-		drvdata->als_level=0;
-
-	r = snprintf(buf, PAGE_SIZE, "0x%x\n", 	drvdata->als_level);
-	DBG("drvdata->als_level = 0x%x\n", drvdata->als_level);
+	als_level = aat2870_get_als_level(drvdata);
+	r = snprintf(buf, PAGE_SIZE, "0x%x\n", als_level);
+	DBG("drvdata->als_level = 0x%x\n", als_level);
 
 	return r;
 }
@@ -1315,6 +1143,64 @@ ssize_t aat2870_show_alsgain_control(struct device *dev,
 	return r;
 }
 
+ssize_t aat2870_store_als_brightness_levels(struct device *dev,
+				struct device_attribute *attr,
+				const char *buf,
+				size_t count)
+{
+	struct aat2870_device *drvdata = dev_get_drvdata(dev->parent);
+	int regs[BRIGHTNESS_REGS];
+	int reg = 0;
+	int offset = 0;
+
+	for (; reg < BRIGHTNESS_REGS; ++reg) {
+		int read = 0;
+		sscanf(buf + offset, "0x%x%n", regs + reg, &read);
+
+		if (read == 0)
+			return -EINVAL;
+
+		offset += read;
+
+		if (count != offset && buf[offset] != ' ' && buf[offset] != '\n')
+			return -EINVAL;
+
+		offset += 1;
+	}
+
+	for (reg = 0; reg < BRIGHTNESS_REGS; ++reg) {
+		to_als_mode[reg].val = regs[reg];
+	}
+
+	if (drvdata->mode == ALS_MODE)
+		aat2870_change_mode(drvdata->client, ALS_MODE, true);
+
+	return count;
+}
+
+ssize_t aat2870_show_als_brightness_levels(struct device *dev,
+				struct device_attribute *attr,
+				char *buf)
+{
+	int reg = 0;
+	int offset = 0;
+
+	for (; reg < 16; ++reg) {
+		int written = snprintf(buf + offset, PAGE_SIZE - offset,
+			"0x%02x ", to_als_mode[reg].val);
+
+		if (written < 0)
+			return -EINVAL;
+
+		offset += written;
+	}
+
+	// replace last ' ' with newline
+	buf[offset - 1] = '\n';
+
+	return offset;
+}
+
 ssize_t aat2870_store_onoff_control(struct device *dev,
 			  struct device_attribute *attr,
 			  const char *buf,
@@ -1369,8 +1255,8 @@ DEVICE_ATTR(als, 0644, aat2870_show_als, aat2870_store_als);
 DEVICE_ATTR(als_level, 0444, aat2870_show_als_level, NULL);
 DEVICE_ATTR(als_control, 0644, aat2870_show_als_control, aat2870_store_als_control);
 DEVICE_ATTR(alsgain_control, 0644, aat2870_show_alsgain_control, aat2870_store_alsgain_control);
+DEVICE_ATTR(als_brightness_levels, 0644, aat2870_show_als_brightness_levels, aat2870_store_als_brightness_levels);
 DEVICE_ATTR(onoff, 0644, NULL, aat2870_store_onoff_control);
-DEVICE_ATTR(als_option, 0644, aat2870_show_als_option, aat2870_store_als_option);//changhyun.han@lge.com, 20100119 ,added the optimized brightness mode
 
 static struct backlight_ops aat2870_bl_ops = {
 	.update_status	= aat2870_bl_set_intensity,
@@ -1390,18 +1276,15 @@ static int aat2870_remove(struct i2c_client *i2c_dev)
 
 	device_remove_file(dev->led->dev, &dev_attr_level);
 	device_remove_file(dev->led->dev, &dev_attr_als);
+	device_remove_file(dev->led->dev, &dev_attr_als_brightness_levels);
 	device_remove_file(dev->led->dev, &dev_attr_als_level);
 	device_remove_file(dev->led->dev, &dev_attr_als_control);
 	device_remove_file(dev->led->dev, &dev_attr_alsgain_control);
 	device_remove_file(dev->led->dev, &dev_attr_onoff);
-	device_remove_file(dev->led->dev, &dev_attr_als_option);//changhyun.han@lge.com, 20100119, added the optimized brightness mode
 
 	backlight_device_unregister(dev->bl_dev);
 	led_classdev_unregister(dev->led);
 	i2c_set_clientdata(i2c_dev, NULL);
-	hrtimer_cancel(&dev->als_timer);
-	if (dev->als_wq)
-		destroy_workqueue(dev->als_wq);
 
 	return 0;
 }
@@ -1484,7 +1367,6 @@ static void aat2870_early_suspend(struct early_suspend *h)
 	DBG("\n");
 	dev = container_of(h, struct aat2870_device, early_suspend);
 
-	hrtimer_cancel(&dev->als_timer);
 	/* 20110218 seven.kim@lge.com to contorl AAT2870 sleep/resume state machine [START] */
 	g_AAT2870_State_Machine = AAT2870_EARLY_SUSPEND_STATE;
 	/* 20110218 seven.kim@lge.com to contorl AAT2870 sleep/resume state machine [END] */
@@ -1512,7 +1394,6 @@ static void aat2870_late_resume(struct early_suspend *h)
 	/* 20110218 seven.kim@lge.com to contorl AAT2870 sleep/resume state machine [END] */
 
 	 /* 20110304 seven.kim@lge.com late_resume_lcd [START] */
-	 hrtimer_start(&dev->als_timer, ktime_set(0,500000000), HRTIMER_MODE_REL); //20100304 seven.kim@lge.com late_reaume_lcd changed 100ms -> 500ms
 	 aat2870_bl_resume(dev->client); //20110321 for black lcd display
  	 /* 20110304 seven.kim@lge.com late_resume_lcd [END] */
 
@@ -1664,19 +1545,8 @@ static int aat2870_probe(struct i2c_client *i2c_dev, const struct i2c_device_id 
 	dev->level = DEFAULT_BRIGHTNESS;
 	dev->state = WAKE_STATE;
 	dev->mode = NORMAL_MODE;
-	dev->als_level = 0;
 
-	INIT_WORK(&dev->als_work, als_work_func);
-
-	dev->als_wq = create_singlethread_workqueue("als_wq");
-	if (!dev->als_wq)
-		return -ENOMEM;
-
-	hrtimer_init(&dev->als_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-	dev->als_timer.function = als_timer_func;
-
-
-	if(gpio_request(LCD_CP_EN, "lcdcs") < 0) {
+	if (gpio_request(LCD_CP_EN, "lcdcs") < 0) {
 		return -ENOSYS;
 	}
 
@@ -1703,11 +1573,11 @@ static int aat2870_probe(struct i2c_client *i2c_dev, const struct i2c_device_id 
 		dev->led = &lcd_backlight;
 		err = device_create_file(dev->led->dev, &dev_attr_level);
 		err = device_create_file(dev->led->dev, &dev_attr_als);
+		err = device_create_file(dev->led->dev, &dev_attr_als_brightness_levels);
 		err = device_create_file(dev->led->dev, &dev_attr_als_level);
 		err = device_create_file(dev->led->dev, &dev_attr_als_control);
 		err = device_create_file(dev->led->dev, &dev_attr_alsgain_control);
 		err = device_create_file(dev->led->dev, &dev_attr_onoff);
-		err = device_create_file(dev->led->dev, &dev_attr_als_option);//changhyun.han@lge.com, 20100119 ,added the optimized brightness mode
 	}
 
 	//aat2870_set_main_current_level(i2c_dev, DEFAULT_BRIGHTNESS);
