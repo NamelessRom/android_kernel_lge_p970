@@ -316,7 +316,7 @@ static int do_recover_data(struct f2fs_sb_info *sbi, struct inode *inode,
 
 	f2fs_wait_on_page_writeback(dn.node_page, NODE);
 
-	get_node_info(sbi, dn.nid, &ni);
+	f2fs_get_node_info(sbi, dn.nid, &ni);
 	f2fs_bug_on(ni.ino != ino_of_node(page));
 	f2fs_bug_on(ofs_of_node(dn.node_page) != ofs_of_node(page));
 
