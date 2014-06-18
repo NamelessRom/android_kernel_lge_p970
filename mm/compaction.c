@@ -720,7 +720,7 @@ static void compact_nodes(void)
 	int nid;
 
 	for_each_online_node(nid)
-		compact_node(nid);
+		compact_node(nid, true);
 }
 
 /* The written value is actually unused, all memory is compacted */

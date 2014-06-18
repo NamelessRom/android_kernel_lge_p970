@@ -144,14 +144,13 @@ struct android_dev {
 	int disable_depth;
 	struct mutex mutex;
 	bool connected;
-	int disable_depth;
 	bool disconnected;
 	bool sw_connected;
 	struct work_struct work;
 /* LGE_SJIT_S 10/21/2011 [mohamed.khadri@lge.com]
             LG Gadget driver */
 #if defined(CONFIG_LGE_ANDROID_USB)
-        int serial_flags;
+	int serial_flags;
 #endif
 /* LGE_SJIT_E 10/21/2011 [mohamed.khadri@lge.com]
             LG Gadget driver */
