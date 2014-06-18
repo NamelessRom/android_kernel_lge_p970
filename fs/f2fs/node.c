@@ -261,7 +261,7 @@ int try_to_free_nats(struct f2fs_sb_info *sbi, int nr_shrink)
 /*
  * This function returns always success
  */
-void get_node_info(struct f2fs_sb_info *sbi, nid_t nid, struct node_info *ni)
+void f2fs_get_node_info(struct f2fs_sb_info *sbi, nid_t nid, struct node_info *ni)
 {
 	struct f2fs_nm_info *nm_i = NM_I(sbi);
 	struct curseg_info *curseg = CURSEG_I(sbi, CURSEG_HOT_DATA);
@@ -492,7 +492,7 @@ static void truncate_node(struct dnode_of_data *dn)
 	struct f2fs_sb_info *sbi = F2FS_SB(dn->inode->i_sb);
 	struct node_info ni;
 
-	get_node_info(sbi, dn->nid, &ni);
+	f2fs_get_node_info(sbi, dn->nid, &ni);
 	if (dn->inode->i_blocks == 0) {
 		f2fs_bug_on(ni.blk_addr != NULL_ADDR);
 		goto invalidate;
@@ -859,7 +859,7 @@ struct page *new_node_page(struct dnode_of_data *dn,
 		goto fail;
 	}
 
-	get_node_info(sbi, dn->nid, &old_ni);
+	f2fs_get_node_info(sbi, dn->nid, &old_ni);
 
 	/* Reinitialize old_ni with new node page */
 	f2fs_bug_on(old_ni.blk_addr != NULL_ADDR);
@@ -902,7 +902,7 @@ static int read_node_page(struct page *page, int rw)
 	struct f2fs_sb_info *sbi = F2FS_SB(page->mapping->host->i_sb);
 	struct node_info ni;
 
-	get_node_info(sbi, page->index, &ni);
+	f2fs_get_node_info(sbi, page->index, &ni);
 
 	if (unlikely(ni.blk_addr == NULL_ADDR)) {
 		f2fs_put_page(page, 1);
@@ -1205,7 +1205,7 @@ static int f2fs_write_node_page(struct page *page,
 	nid = nid_of_node(page);
 	f2fs_bug_on(page->index != nid);
 
-	get_node_info(sbi, nid, &ni);
+	f2fs_get_node_info(sbi, nid, &ni);
 
 	/* This page is already truncated */
 	if (unlikely(ni.blk_addr == NULL_ADDR)) {
@@ -1580,7 +1580,7 @@ bool recover_xattr_data(struct inode *inode, struct page *page, block_t blkaddr)
 		goto recover_xnid;
 
 	/* Deallocate node address */
-	get_node_info(sbi, prev_xnid, &ni);
+	f2fs_get_node_info(sbi, prev_xnid, &ni);
 	f2fs_bug_on(ni.blk_addr == NULL_ADDR);
 	invalidate_blocks(sbi, ni.blk_addr);
 	dec_valid_node_count(sbi, inode);
@@ -1592,7 +1592,7 @@ recover_xnid:
 		f2fs_bug_on(1);
 
 	remove_free_nid(NM_I(sbi), new_xnid);
-	get_node_info(sbi, new_xnid, &ni);
+	f2fs_get_node_info(sbi, new_xnid, &ni);
 	ni.ino = inode->i_ino;
 	set_node_addr(sbi, &ni, NEW_ADDR, false);
 	F2FS_I(inode)->i_xattr_nid = new_xnid;
@@ -1619,7 +1619,7 @@ int recover_inode_page(struct f2fs_sb_info *sbi, struct page *page)
 	/* Should not use this inode  from free nid list */
 	remove_free_nid(NM_I(sbi), ino);
 
-	get_node_info(sbi, ino, &old_ni);
+	f2fs_get_node_info(sbi, ino, &old_ni);
 	SetPageUptodate(ipage);
 	fill_node_footer(ipage, ino, ino, 0, true);
 
