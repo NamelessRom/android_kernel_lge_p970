@@ -26,6 +26,7 @@
 #include <linux/workqueue.h>
 #include <linux/slab.h>
 #include <linux/opp.h>
+#include <linux/earlysuspend.h>
 
 #include "smartreflex.h"
 #include "voltage.h"
@@ -71,6 +72,7 @@ struct sr_class1p5_work_data {
 #if CONFIG_OMAP_SR_CLASS1P5_RECALIBRATION_DELAY
 /* recal_work:	recalibration calibration work */
 static struct delayed_work recal_work;
+static struct workqueue_struct *smart_work;
 #endif
 
 /**
@@ -401,7 +403,7 @@ static void sr_class1p5_recal_work(struct work_struct *work)
 		pr_err("%s: Recalibration failed\n", __func__);
 	mutex_unlock(&omap_dvfs_lock);
 	/* We come back again after time the usual delay */
-	schedule_delayed_work(&recal_work,
+	queue_delayed_work(smart_work, &recal_work,
 			      msecs_to_jiffies
 			      (CONFIG_OMAP_SR_CLASS1P5_RECALIBRATION_DELAY));
 }
@@ -664,6 +666,31 @@ static struct omap_sr_class_data class1p5_data = {
 	.notify_flags = SR_NOTIFY_MCUBOUND,
 };
 
+static void smartreflex_early_suspend(struct early_suspend *handler)
+{
+
+	/* Stop recalibration if suspended, because its likely that we don't need it */	
+	flush_workqueue(smart_work);
+	cancel_delayed_work_sync(&recal_work);
+
+	pr_info("[smartreflex]: stopping calibration due suspend \n");
+}
+
+static void smartreflex_late_resume(struct early_suspend *handler)
+{
+	/* Rearm workqueue again */
+	queue_delayed_work(smart_work, &recal_work,
+			      msecs_to_jiffies
+			      (CONFIG_OMAP_SR_CLASS1P5_RECALIBRATION_DELAY));
+	pr_info("[smartreflex]: start calibration again \n");
+}
+
+static struct early_suspend smartreflex_suspend_handler  = {
+	.level 		= EARLY_SUSPEND_LEVEL_BLANK_SCREEN + 1,
+	.suspend 	= smartreflex_early_suspend,
+	.resume 	= smartreflex_late_resume,
+};
+
 /**
  * sr_class1p5_driver_init() - register class 1p5 as default
  *
@@ -684,15 +711,24 @@ static int __init sr_class1p5_driver_init(void)
 		       "failed to register with %d\n", r);
 	} else {
 #if CONFIG_OMAP_SR_CLASS1P5_RECALIBRATION_DELAY
-		INIT_DELAYED_WORK_DEFERRABLE(&recal_work,
-					     sr_class1p5_recal_work);
-		schedule_delayed_work(&recal_work,
+
+		smart_work = alloc_ordered_workqueue("smartreflex_calibration_workqueue", 0);
+
+		if (!smart_work)
+			return -ENOMEM;
+
+		INIT_DELAYED_WORK(&recal_work, sr_class1p5_recal_work);
+		queue_delayed_work(smart_work, &recal_work,
 			      msecs_to_jiffies
 			      (CONFIG_OMAP_SR_CLASS1P5_RECALIBRATION_DELAY));
 #endif
 		pr_info("SmartReflex class 1.5 driver: initialized (%dms)\n",
 			CONFIG_OMAP_SR_CLASS1P5_RECALIBRATION_DELAY);
 	}
+
+	/* suspend/resume call */
+	register_early_suspend(&smartreflex_suspend_handler);
+
 	return r;
 }
 late_initcall(sr_class1p5_driver_init);
