@@ -96,13 +96,13 @@ static const char name_muic_mode[MUIC_MODE_NO][30] = {
 	"MUIC_CP_DOWNLOAD",	// 15
 	"MUIC_ILLEGAL_CHG",	//16
 	"MUIC_RESERVE1",		// 17
-	"MUIC_MODE_NO",		// 18
+	"MUIC_MODE_NO",		// 18	
 #else
 	"MUIC_RESERVE1",		// 15
 	"MUIC_RESERVE2",		// 16
 	"MUIC_RESERVE3",		// 17
 	"MUIC_MODE_NO",		// 18
-#endif
+#endif	
 };
 
 static struct i2c_client *muic_client;
@@ -124,7 +124,7 @@ extern TYPE_DP3T_MODE dp3t_mode;	// temp kibum.lee@lge.com 20120502 MUIC re-work
 
 
 // kibum.lee@lge.com 20120502 MUIC re-work
-/*
+/* 
  * Add private device handle
  */
 struct hub_muic_device {
@@ -158,7 +158,7 @@ static int usb_retained = NOT_RETAINED;
 static int hidden_menu_switching;
 /* LGE_CHANGE_E [kenneth.kang@lge.com] 2010-12-14, CP retain mode */
 
-/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */
+/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */    
 static int muic_init_done=0;     // 20110113 ks.kwon@lge.com check muic driver init. state
 /* LGE_CHANGE_END 2011-03-16 kenneth.kang@lge.com */
 
@@ -180,7 +180,7 @@ s32 muic_CP_USB_set(void);
 
 // void check_usb_reg(void); /* 20111105, mschung@ubiquix.com, for stable USB connection. */
 
-// LGE_UPDATE_S 20110412 [jaejoong.kim@lge.com]
+// LGE_UPDATE_S 20110412 [jaejoong.kim@lge.com] 
 void muic_udelay(u32 microsec);
 
 /* 20110727, mschung@ubiquix.com, Separate twl4030_bci_battery for justin. [UB_START] */
@@ -374,8 +374,8 @@ static void set_wakelock(u32 set) {
 		if(!the_wlock.wake_lock_on)
 			wake_lock(&the_wlock.wake_lock);
 			the_wlock.wake_lock_on=1;
-	}
-	else
+	} 
+	else 
 	{
 		if(the_wlock.wake_lock_on)
 			wake_unlock(&the_wlock.wake_lock);
@@ -389,15 +389,15 @@ static void set_wakelock(u32 set) {
 #if 0
 void usif_switch_ctrl(TYPE_USIF_MODE mode){
 
-/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */
+/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */    
 	/* 20110113 ks.kwon@lge.com check muic driver init. state [START] */
 	if(!muic_init_done){
 
 		printk(KERN_WARNING "[MUIC] MUIC has not been initialized! Nothing will be done!!!.\n");
 		return ;
-	}
+	}	
     /* 20110113 ks.kwon@lge.com check muic driver init. state [END] */
-/* LGE_CHANGE_END 2011-03-16 kenneth.kang@lge.com */
+/* LGE_CHANGE_END 2011-03-16 kenneth.kang@lge.com */    	
 
     /* gpio data setting */
 	if(mode == USIF_AP){
@@ -450,13 +450,13 @@ void dp3t_switch_ctrl(TYPE_DP3T_MODE mode){
 s32 muic_AP_UART_set(void){
 
 	s32 ret;
-/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */
+/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */    
 	/* 20110113 ks.kwon@lge.com check muic driver init. state [START] */
 	if(!muic_init_done){
 
 		printk(KERN_WARNING "[MUIC] MUIC has not been initialized! Nothing will be done!!!.\n");
 		return 0;
-	}
+	}	
     /* 20110113 ks.kwon@lge.com check muic driver init. state [END] */
 /* LGE_CHANGE_END 2011-03-16 kenneth.kang@lge.com */
 
@@ -491,7 +491,7 @@ s32 muic_AP_UART_set(void){
 s32 muic_AP_USB_set(void){
 
 	s32 ret;
-/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */
+/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */    
 	/* 20110113 ks.kwon@lge.com check muic driver init. state [START] */
 	if(!muic_init_done){
 
@@ -555,13 +555,13 @@ s32 muic_CP_UART_set(void){
 
 	s32 ret;
 
-/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */
+/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */    
 	/* 20110113 ks.kwon@lge.com check muic driver init. state [START] */
 	if(!muic_init_done){
 
 		printk(KERN_WARNING "[MUIC] MUIC has not been initialized! Nothing will be done!!!.\n");
 		return 0;
-	}
+	}	
     /* 20110113 ks.kwon@lge.com check muic driver init. state [END] */
 /* LGE_CHANGE_END 2011-03-16 kenneth.kang@lge.com */
 
@@ -600,7 +600,7 @@ s32 muic_CP_USB_set(void){
 
 	s32 ret;
 
-/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */
+/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */    	
 	/* 20110113 ks.kwon@lge.com check muic driver init. state [START] */
 	if(!muic_init_done){
 
@@ -659,10 +659,7 @@ void muic_udelay(u32 microsec)
 {
 	u32 microseconds;
 	microseconds = microsec;
-	if(microseconds>20000)
-		mdelay(microseconds/1000);
-	else
-		udelay(microseconds);
+	mdelay(microseconds);
 }
 
 /* Initialize MUIC, i.e., the CONTROL_1,2 and SW_CONTROL registers.
@@ -703,7 +700,7 @@ void muic_initialize(TYPE_RESET reset){
 		* Initialize MUIC - Default setting.
 		*
 		* CONTROL_1:
-		*
+		* 
 		* 	ID_2P2 	= 0. Enable to distinguish MUIC_EARMIC from MUIC_TV_OUT_LOAD and MUIC_OTG.
 		* 		     Enable for MUIC_EARMIC operation.
 		*	ID_620 	= 0. Enable only to distinguish MUIC_TV_OUT_LOAD from MUIC_OTG.
@@ -713,8 +710,8 @@ void muic_initialize(TYPE_RESET reset){
 		*	ADC_EN 	= 0. Because it is automatically enabled upon any change in ID resistor.
 		*	CP_EN 	= 0. Enalbe for USB 2.0 (MUIC_AP_USB, MUIC_CP_USB, and MUIC_OTG).
 		*		     Enable for Audio charge pump (MUIC_EARMIC, MUIC_TV_OUT_LOAD).
-		*
-		* CONTROL_2:
+		* 
+		* CONTROL_2: 
 		*
 		* 	INTPOL 	= 0.
 		* 	INT_EN	= 1.
@@ -723,7 +720,7 @@ void muic_initialize(TYPE_RESET reset){
 		* 	CHG_TYP	= 1.
 		* 	USB_DET_DIS = 0. Negative enabled.
 		*
-		* SW_CONTROL:
+		* SW_CONTROL: 
 		*
 		* 	MIC_ON	= 0. Enable for MUIC_EARMIC and MUIC_TV_OUT_LOAD.
 		* 	DP	= 111 (open).
@@ -739,7 +736,7 @@ void muic_initialize(TYPE_RESET reset){
 		* since CONTROL_1, 2 settings are much shorter (< 70msec).
 		* The settle down time for INT_STAT and STATUS register bits
 		* since an interrupt occurs = 70msec.
-		*
+		* 
 		* Thus,
 		* we need to wait 250msec if we enable CHG_TYP from its inactive state.
 		* And, we need to wait just 70msec for all other cases including
@@ -779,7 +776,7 @@ s32 muic_distinguish_charger(void){
 	/* Connect AP UART to MUIC UART */
 	//dp3t_switch_ctrl(DP3T_AP_UART);
 
-	/*
+	/* 
 	 *	LGE_UPDATE 20110425 [jaejoong.kim@lge.com] change IDNO for detecting LG_TA
 	 *
 	 *	IDNO == 0x05(0101) 180 KOhm. LG TA : Standard usb cable
@@ -811,7 +808,7 @@ s32 muic_distinguish_charger(void){
 		printk(KERN_INFO "[MUIC] STATUS reading failed\n");
 		muic_mode = MUIC_UNKNOWN;
 		muic_set_mode(MUIC_UNKNOWN);		// kibum.lee@lge.com 20120502 MUIC re-work
-		key_was_pressed = 0; // from HUB
+		key_was_pressed = 0; // from HUB 
 		set_wakelock(0);
 		return ret;
 	}
@@ -847,7 +844,7 @@ static void muic_device_none_detect(void)
 	u8 reg_value;
 	u8 status_value;
 	s32 ret;
-
+	
 	if ((key_col == 3) && (key_row == 0)) // Volume up
 		key_was_pressed = 1;
 	else if ((key_col == 3) && (key_row == 1)) // Volume down
@@ -856,7 +853,7 @@ static void muic_device_none_detect(void)
 	printk(KERN_WARNING "[MUIC] Device_None_Detect int_stat_val = 0x%x\n",int_stat_val);
 
 /* LGE_CHANGE_S [kenneth.kang@lge.com] 2010-12-14, CP retain mode */
-#ifdef CP_RETAIN
+#ifdef CP_RETAIN	
 	if (is_cp_retained)
 	{
 		//muic_CP_USB_set();
@@ -871,7 +868,7 @@ static void muic_device_none_detect(void)
 	if(ret < 0)
 		printk("[MUIC] [%s-%d] muic_i2c_read_byte_local Fail [ret = %d]\n", __func__, __LINE__, ret);
 	else
-		printk("[MUIC] [%s-%d] INT_STAT Value is 0x%x / MVBUS bit is %d\n", __func__, __LINE__,
+		printk("[MUIC] [%s-%d] INT_STAT Value is 0x%x / MVBUS bit is %d\n", __func__, __LINE__, 
 																	status_value, ((status_value & MVBUS) >> 4));
 	if (usb_retained == CP_RETAINED)
 	{
@@ -893,10 +890,10 @@ static void muic_device_none_detect(void)
     else if(((int_stat_val & MIDNO) == 0x04)
             || (hidden_menu_switching == 7)) {
 
-#else
+#else		
 	if(((int_stat_val & MIDNO) == 0x04)
 			|| (hidden_menu_switching == 7)) {
-#endif
+#endif	
 		//muic_CP_UART_set();
 		muic_set_mode(MUIC_CP_UART);	// kibum.lee@lge.com
 	}
@@ -911,7 +908,7 @@ static void muic_device_none_detect(void)
 	}
 	// LGE_UPDATE_S [kenneth.kang@lge.com] 2010-12-12, for 910K factory download
 	// IDNO=1010? 910Kohm :: CP USB MODE
-#ifdef 	CABLE_DETECT_910K
+#ifdef 	CABLE_DETECT_910K	
 	else if ((int_stat_val & MIDNO ) == 0x0a) {
 		//muic_CP_USB_set();
 		muic_set_mode(MUIC_CP_USB);	// kibum.lee@lge.com
@@ -987,7 +984,7 @@ static void muic_device_none_detect(void)
 #if 0
 			if (key_was_pressed == 2)
 				//muic_CP_USB_set();
-				muic_set_mode(MUIC_CP_USB);	// kibum.lee@lge.com
+				muic_set_mode(MUIC_CP_USB);	// kibum.lee@lge.com	
 			else
 #endif /* #if 0 */
 // LGE_UPDATE_S 20110521 [jaejoong.kim@lge.com] block CP usb for commercial version
@@ -1005,13 +1002,13 @@ static void muic_device_none_detect(void)
 
 s32 muic_device_detection(s32 upon_irq)
 {
-/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */
+/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */    
 	/* 20110113 ks.kwon@lge.com check muic driver init. state [START] */
 	if(!muic_init_done){
 
 		printk(KERN_WARNING "[MUIC] MUIC has not been initialized! Nothing will be done!!!.\n");
 		return 0;
-	}
+	}	
     /* 20110113 ks.kwon@lge.com check muic driver init. state [END] */
 /* LGE_CHANGE_END 2011-03-16 kenneth.kang@lge.com */
 	// Read INT_STAT_REG (0x04)
@@ -1134,15 +1131,15 @@ ssize_t muic_store_wake_lock(struct device *dev,
 }
 
 /* Shutdown issue at the case of USB booting [kyungyoon.kim@lge.com] 2010-12-25 */
-ssize_t muic_store_charging_mode(struct device *dev,
-			  struct device_attribute *attr,
-			  const char *buf,
+ssize_t muic_store_charging_mode(struct device *dev, 
+			  struct device_attribute *attr, 
+			  const char *buf, 
 			  size_t count)
 {
 	int value = 0;
 
     	printk(KERN_INFO "[MUIC] muic_store_charging_mode \n");
-
+	
 	if (!count) {
 		return -EINVAL;
 	}
@@ -1162,7 +1159,7 @@ ssize_t muic_store_charging_mode(struct device *dev,
 
 // mschung debug temporal
 //
-//#if defined(CONFIG_PRODUCT_LGE_JUSTIN)	/* 20110705, mschung@ubiquix.com, One Source, JUSTIN */
+//#if defined(CONFIG_PRODUCT_LGE_JUSTIN)	/* 20110705, mschung@ubiquix.com, One Source, JUSTIN */ 
 //20110114_ntjongwoo.park@lge.com_muic_reg[BEGIN_NEOTOUCH]
 // extern unsigned int muic_reg;
 //ssize_t muic_reg_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -1177,7 +1174,7 @@ ssize_t muic_store_charging_mode(struct device *dev,
 //#endif
 //20110114_ntjongwoo.park@lge.com_muic_reg[END_NEOTOUCH]
 
-/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */
+/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */    
 void vbus_irq_muic_handler(int state)
 {
     if(muic_init_done){
@@ -1300,7 +1297,7 @@ static s32 muic_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	}
 
 	i2c_set_clientdata(client, dev);
-
+	
 	printk("%s, registering ops\n", __func__);
 	muic_client_dev_register(dev->client->name, dev, &hub_muic_ops);
 //kibum.lee@lge.com 20120502 MUIC re-work end
@@ -1374,7 +1371,7 @@ static s32 muic_probe(struct i2c_client *client, const struct i2c_device_id *id)
 		printk(KERN_INFO "[MUIC] GPIO %d MUIC_INT_N IRQ line set up failed!\n", MUIC_INT_GPIO);
 		free_irq(gpio_to_irq(MUIC_INT_GPIO), &client->dev);
 		ret = -ENOSYS;
-		goto err_gpio_request;
+		goto err_gpio_request;		
 	}
 
 	/* Make the interrupt on MUIC INT wake up OMAP which is in suspend mode */
@@ -1396,7 +1393,7 @@ static s32 muic_probe(struct i2c_client *client, const struct i2c_device_id *id)
 
 	/* Initialize MUIC - Finally MUIC INT becomes enabled */
 
-/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */
+/* LGE_CHANGE_START 2011-03-16 kenneth.kang@lge.com patch for Adb offline set and Mass Storage Driver detecting fail */    
 	 muic_init_done = 1; //20110113 ks.kwon@lge.com check muic driver init. state
 /* LGE_CHANGE_END 2011-03-16 kenneth.kang@lge.com */
 	muic_initialize(RESET);
@@ -1416,7 +1413,7 @@ static s32 muic_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	printk(KERN_INFO "[MUIC] muic_probe(): done!\n");
 
 	return ret;
-
+	
 err_muic_device_register:
 	free_irq(gpio_to_irq(MUIC_INT_GPIO), dev);
 err_gpio_request:
@@ -1466,7 +1463,7 @@ static s32 muic_suspend(struct i2c_client *client, pm_message_t state){
 #endif
 /* E], 2012.08.18, mannsik.chung@lge.com, MUIC should not ignore disconnection of USB cable. */
 	printk(KERN_INFO "[MUIC] muic_suspend \n");
-
+	
 	return 0;
 }
 

@@ -83,7 +83,9 @@ static const char name_muic_mode[MUIC_MODE_NO][30] = {
 	"MUIC_TV_OUT_LOAD",	// 12
 	"MUIC_OTG",   		// 13
 	"MUIC_MHL",			// 14
-#if	defined(CONFIG_PRODUCT_LGE_LU6800) || defined(CONFIG_PRODUCT_LGE_KU5900)
+//#if	defined(CONFIG_PRODUCT_LGE_LU6800) || defined(CONFIG_PRODUCT_LGE_KU5900)
+/* [LGE_CHANGE] 20120908 pyocool.cho@lge.com "for p970" */
+#if	defined(CONFIG_PRODUCT_LGE_LU6800) || defined(CONFIG_PRODUCT_LGE_KU5900) || defined(CONFIG_PRODUCT_LGE_P970)
 	"MUIC_CP_DOWNLOAD",	// 15
 	"MUIC_ILLEGAL_CHG",	//16
 	"MUIC_RESERVE1",		// 17

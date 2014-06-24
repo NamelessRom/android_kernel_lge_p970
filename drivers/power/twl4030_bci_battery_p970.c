@@ -36,7 +36,7 @@
 #if defined(CONFIG_HUB_MUIC)
 #include "../hub/hub_muic.h"
 #endif
-// kibum.lee@lge.com 20120502 MUIC re-work start
+// kibum.lee@lge.com 20120502 MUIC re-work start	
 #if defined(CONFIG_MUIC)
 #include <linux/muic/muic.h>
 #endif
@@ -310,7 +310,7 @@ int check_battery_present(void)
 {
 	if(refer_di == NULL)
 		return 0;
-
+		
     if(refer_di->temp_C == 0xBA00E00)
     	return 0;
     return 1;
@@ -340,7 +340,7 @@ static ssize_t pif_detect_show(struct device *dev,
 	} else {
 		val = 0;
 	}
-// kibum.lee@lge.com 20120502 MUIC re-work start
+// kibum.lee@lge.com 20120502 MUIC re-work start	
 #elif defined(CONFIG_MUIC)
 	int muic_mode;
 	muic_mode = muic_get_mode();
@@ -356,7 +356,7 @@ static ssize_t pif_detect_show(struct device *dev,
 	} else {
 		val = 0;
 	}
-// kibum.lee@lge.com 20120502 MUIC re-work end
+// kibum.lee@lge.com 20120502 MUIC re-work end	
 #endif
 	sprintf(buf, "%d\n", val);
 	return (ssize_t)(strlen(buf) + 1);
@@ -422,8 +422,8 @@ static ssize_t fuel_cal_show(struct device *dev,
 		printk("[BATTERY] error in gauge IC value, difference value is %d \n",gauge_diff);
 		gauge_cal_check = 0;
 	}
-	printk("[BATTERY] success to access fuel_cal_show \n");
-	if (gauge_cal_check == 0)
+	printk("[BATTERY] success to access fuel_cal_show \n"); 
+	if (gauge_cal_check == 0) 
 	{
 		val = 1;
 		printk("[BATTERY] Gauge Calibration started in fuel_cal_show\n");
@@ -750,7 +750,7 @@ static int adc2temperature(int adc)
 		{-200,	645},	// -20 C
 		{-1, -1}		// end of data
 	};
-
+		
 	int tmp;
 	int grad, inter;
 	int i = 0;
@@ -805,7 +805,7 @@ static int twl4030battery_temperature(void)
 	if (temp > 720) {		// Floating BATT Temp Pin
 		return 0xBA00E00;	// means No Battery or Dummy Battery
 	}
-
+	
 	// 20101226 dajin.kim@lge.com Convert adc value to temperature
 	temp = adc2temperature(temp);
 
@@ -828,8 +828,8 @@ static int twl4030battery_voltage(void)
 	else
 	{
 		volt = read_bci_val(T2_BATTERY_VOLT);
-		return (volt * VOLT_STEP_SIZE) / VOLT_PSR_R;
-	}
+		return (volt * VOLT_STEP_SIZE) / VOLT_PSR_R; 
+	} 
 }
 
 /*
@@ -1030,14 +1030,14 @@ static void set_battery_status(struct twl4030_bci_device_info *di)
 				wakeup_timer_seconds = 60;
 		break;
 	}
-
+	
 	// Set Charging Status
 	if(di->charge_rsoc == POWER_SUPPLY_TYPE_UPS ||		// JIG
 	   di->charge_rsoc == POWER_SUPPLY_TYPE_BATTERY) {	// Battery
 		di->charge_status = POWER_SUPPLY_STATUS_DISCHARGING;
 	} else {
 		if(di->battery_present == 0) {			// Battery not present. Display as not charging
-			di->charge_status = POWER_SUPPLY_STATUS_NOT_CHARGING;
+			di->charge_status = POWER_SUPPLY_STATUS_NOT_CHARGING;		
 		} else if((di->temp_C < TEMP_CRITICAL_LOWER ||
 			  di->temp_C > TEMP_CRITICAL_UPPER) &&
 			  di->temp_control != UNLIMITED_TEMP_VAL) {	// 20120725, mannsik.chung@lge.com, Enable charging by fake mode.
@@ -1070,7 +1070,7 @@ static int check_battery_changed(struct twl4030_bci_device_info *di)
 	static int battery_calibration_enabled = 0;
 	int need_recalibration = 0;
 	int upper_limit, lower_limit;
-
+	
 	if(battery_calibration_enabled) {	// Voltage Calibration Complete
 		start_monitor = 0;
 		set_end_of_charge(0);
@@ -1129,7 +1129,7 @@ static int set_battery_charging(struct twl4030_bci_device_info *di)
 {
 	int trickle_chg_max, trickle_chg_min, trickle_chg_timer_start;
 	max8922_status chr_ic_status = get_charging_ic_status();
-
+	
 	if(di->battery_present == 0 || 						// No Battery State
 		di->charge_rsoc == POWER_SUPPLY_TYPE_BATTERY) {	// No Charging Source
 		start_monitor = 0;
@@ -1137,7 +1137,7 @@ static int set_battery_charging(struct twl4030_bci_device_info *di)
 		set_charging_timer(0);
 		return 0;
 	}
-
+	
 	/*
 	 * Recharging algorithm
      *  - High Temperature : up to 4.0V
@@ -1232,7 +1232,7 @@ static void twl4030_bci_battery_update_status(struct twl4030_bci_device_info *di
 			backup_battery_info(di);
 			break;
 	}
-
+	
 	power_supply_changed(&di->bat);
 
 }
@@ -1273,7 +1273,7 @@ static int twl4030_bci_battery_get_property(struct power_supply *psy,
 #if defined(CONFIG_HUB_MUIC)
 #else
 	int status = 0;
-#endif
+#endif	
 	max8922_status chr_ic_status = CHARGING_IC_DEACTIVE;
 	chr_ic_status = get_charging_ic_status();
 
@@ -1309,7 +1309,7 @@ static int twl4030_bci_battery_get_property(struct power_supply *psy,
 			if(di->battery_present == 0)		// No Battery or Dummy Battery
 				val->intval = 200;
 			// S[, 20120725, mannsik.chung@lge.com, Enable charging by fake mode.
-			else if (di->temp_control == UNLIMITED_TEMP_VAL)
+			else if (di->temp_control == UNLIMITED_TEMP_VAL) 
 			{
 				if (di->temp_C > UNLIMITED_TEMP_HIGH)
 					val->intval = UNLIMITED_TEMP_HIGH;
@@ -1356,7 +1356,7 @@ static int twl4030_bci_battery_get_property(struct power_supply *psy,
 			muic_mode = muic_get_mode();
 			if(muic_mode == MUIC_CP_USB  ||		// JIG
 			   muic_mode == MUIC_CP_UART ||
-			   muic_mode == MUIC_AP_UART &&
+			   muic_mode == MUIC_AP_UART && 
 			   chr_ic_status != CHARGING_IC_DEACTIVE) {
 				val->intval = 1;
 			} else if(muic_mode == MUIC_NONE) {	// Dummy Battery
@@ -1491,7 +1491,7 @@ static int twl4030_ac_bci_battery_get_property(struct power_supply *psy,
 			else
 				val->intval = 0;
 			break;
-// kibum.lee@lge.com 20120502 MUIC re-work end
+// kibum.lee@lge.com 20120502 MUIC re-work end	
 #endif
 /* LGE_CHANGE_E [sookyoung.kim@lge.com] 2010-03-19 */
 		default:
@@ -1527,7 +1527,7 @@ static int twl4030_usb_bci_battery_get_property(struct power_supply *psy,
 			else
 				val->intval = 0;
 			break;
-// kibum.lee@lge.com 20120502 MUIC re-work end
+// kibum.lee@lge.com 20120502 MUIC re-work end	
 #endif
 /* LGE_CHANGE_E [sookyoung.kim@lge.com] 2010-03-19 */
 		default:
@@ -1688,8 +1688,8 @@ static int __init twl4030_bci_battery_probe(struct platform_device *pdev)
 	// Update First Battery Information
 	refer_di = di;
 	twl4030_bci_battery_read_status(di);
-	set_battery_status(di);
-
+	set_battery_status(di);	
+	
 	backup_battery_info(di);
 	di->bk_voltage_uV = 3700;
 	return 0;
@@ -1753,7 +1753,7 @@ static int twl4030_bci_battery_suspend(struct platform_device *pdev,
 {
 	struct twl4030_bci_device_info *di = platform_get_drvdata(pdev);
     //di->charge_status = POWER_SUPPLY_STATUS_UNKNOWN;  //20101116 taehwan.kim@lge.com
-	cancel_delayed_work(&di->twl4030_bci_monitor_work);
+	cancel_delayed_work(&di->twl4030_bci_monitor_work);    
 	return 0;
 }
 

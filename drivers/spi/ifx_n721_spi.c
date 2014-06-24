@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+ */  
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -46,17 +46,17 @@
 #include <plat/omap-pm.h>
 //LGSI_P970_WAP_24thGBXMM_BaselineAdoption_Santosh_End
 #include "ifx_n721_spi.h"
-#include <linux/delay.h>
+#include <linux/delay.h>	
 #define MRDY_DELAY_TIME 400     //20101127-1, syblue.lee@lge.com, Change delay time for transcation : 1000us -> 400us
 #define MODEM_CHK 177           //gpio_177 AP_SLEEP_CHK [LGE-SPI]
 
 //#define CONFIG_SPI_DEBUG
 #undef CONFIG_SPI_DEBUG
 
-void dump_atcmd_simple(char *txt, char *data, int len)
+void dump_atcmd_simple(char *txt, char *data, int len) 
 {
 	int j ;
-
+	
 	if(len>20)
 		len = 10;
 
@@ -64,16 +64,16 @@ void dump_atcmd_simple(char *txt, char *data, int len)
 	for(j=0;j<len;j++)
 	{
 		if(data[j]>=32 && data[j]<=126)
-			printk("%c,",data[j]);
+			printk("%c,",data[j]);	
 		else
-			printk("%x,",data[j]);
+			printk("%x,",data[j]);	
 	}
 	printk("\n");
 }
 
 #ifdef CONFIG_SPI_DEBUG
 #define SPI_DEBUG_PRINT(format, args...)  printk(format , ## args)
-#else
+#else 
 #define SPI_DEBUG_PRINT(format, args...) do{}while(0)
 #endif
 
@@ -120,7 +120,7 @@ typedef struct {
 
 #define GET_LONG_LENGTH(a) ( ((a).h_len << 7) | ((a).l_len) )
 
-void dump_atcmd(char *data)
+void dump_atcmd(char *data) 
 {
 
 	short_frame *short_pkt = (short_frame *) data;
@@ -145,7 +145,7 @@ void dump_atcmd(char *data)
 	}
 	if(uih_len>10)
 		uih_len = 10;
-
+	
 	for(i=0; i<uih_len; i++)
 	{
 		if(uih_data_start[i]>=32 && uih_data_start[i]<=126)
@@ -195,7 +195,7 @@ union ifx_spi_frame_header{
 		unsigned int curr_data_size:12;
 		unsigned int more:1;
 		unsigned int res1:1;
-		unsigned int res2:2;
+		unsigned int res2:2;      
 		unsigned int next_data_size:12;
 		unsigned int ri:1;
 		unsigned int dcd:1;
@@ -237,7 +237,7 @@ static DEFINE_MUTEX(device_list_lock);
 /*
  * Function opens a tty device when called from user space
  */
-static int
+static int 
 ifx_spi_open(struct tty_struct *tty, struct file *filp)
 {
 	struct ifx_spi_data *spi_data;
@@ -273,9 +273,9 @@ ifx_spi_open(struct tty_struct *tty, struct file *filp)
 /*
  * Function closes a opened a tty device when called from user space
  */
-static void
+static void 
 ifx_spi_close(struct tty_struct *tty, struct file *filp)
-{
+{  
 	struct ifx_spi_data *spi_data = (struct ifx_spi_data *)tty->driver_data;
 
 	if(!spi_data) return;
@@ -286,7 +286,7 @@ ifx_spi_close(struct tty_struct *tty, struct file *filp)
 		spi_data->ifx_tty = NULL;
 		tty->driver_data = NULL;
 	}
-}
+}  
 
 /*
  * Function is called from user space to send data to MODEM, it setups the transmission, enable MRDY signal and
@@ -297,17 +297,17 @@ ifx_spi_close(struct tty_struct *tty, struct file *filp)
 
 //#define LGE_DUMP_SPI_BUFFER   // woojun.ye: disable SPI log printk.
 #ifdef LGE_DUMP_SPI_BUFFER
-#define COL_SIZE 20
+#define COL_SIZE 20	
 static void dump_spi_buffer(const unsigned char *txt, const unsigned char *buf, int count)
 {
     char dump_buf_str[COL_SIZE+1];
 
-    if (buf != NULL)
+    if (buf != NULL) 
     {
         int j = 0;
         char *cur_str = dump_buf_str;
         unsigned char ch;
-        while((j < COL_SIZE) && (j  < COL_SIZE/* count */))
+        while((j < COL_SIZE) && (j  < COL_SIZE/* count */))	
         {
             ch = buf[j];
             if ((ch < 32) || (ch > 126))
@@ -321,14 +321,14 @@ static void dump_spi_buffer(const unsigned char *txt, const unsigned char *buf, 
             j++;
         }
         *cur_str = 0;
-
-        printk("%s:count:%d [%s]\n", txt, count, dump_buf_str);
+	
+        printk("%s:count:%d [%s]\n", txt, count, dump_buf_str);                        
 
     }
     else
     {
 
-        printk("%s: buffer is NULL\n", txt);
+        printk("%s: buffer is NULL\n", txt);                 
 
     }
 }
@@ -336,9 +336,9 @@ static void dump_spi_buffer(const unsigned char *txt, const unsigned char *buf, 
 #define dump_spi_buffer(...)
 #endif
 
-static int
+static int 
 ifx_spi_write(struct tty_struct *tty, const unsigned char *buf, int count)
-{
+{	
 	struct ifx_spi_data *spi_data = (struct ifx_spi_data *)tty->driver_data;
 
 	if(!spi_data) return 0;
@@ -371,33 +371,36 @@ ifx_spi_write(struct tty_struct *tty, const unsigned char *buf, int count)
 	spi_data->ifx_spi_count  = count;
 
 #ifdef CONFIG_LGE_SPI_MODE_SLAVE
-	queue_work(spi_data->ifx_wq, &spi_data->ifx_work);
+	queue_work(spi_data->ifx_wq, &spi_data->ifx_work);    
 #else
-	ifx_spi_set_mrdy_signal(spi_data, 1);
+	ifx_spi_set_mrdy_signal(spi_data, 1);  
 #endif
-//	dump_atcmd(buf+2) ;
+//	dump_atcmd(buf+2) ; 	
 
-// LGE_UPDATE_S eungbo.shim@lge.com 20110111 -- SPI RETRY
+// LGE_UPDATE_S eungbo.shim@lge.com 20110111 -- SPI RETRY 
 
 //LGSI_P970_WAP_24thGBXMM_BaselineAdoption_Santosh_Start
-	wait_for_completion_timeout(&spi_data->ifx_read_write_completion, 3*HZ);
+	wait_for_completion_timeout(&spi_data->ifx_read_write_completion, 3*HZ);	
 //LGSI_P970_WAP_24thGBXMM_BaselineAdoption_Santosh_End
 
 	if(spi_data->ifx_ret_count==0)
-	{
-		ifx_spi_set_mrdy_signal(spi_data, 0);
+	{	
 
+        int pin_val;
+        pin_val = gpio_get_value(spi_data->srdy_gpio);
+		printk("SRDY SIGNAL = %d\n", pin_val);
+
+		ifx_spi_set_mrdy_signal(spi_data, 0);
+ 
         printk("%s - timeout!! Can't get SRDY from CP for 10sec. Set MRDY high to low\n", __FUNCTION__); // 20120213 taeju.park@lge.com To delete compile warning, too many arguments for format
         dump_spi_buffer("timeout - ifx_spi_write()", buf, count);
-        {
-                int pin_val;
-                pin_val = gpio_get_value(spi_data->srdy_gpio);
-                printk("SRDY SIGNAL = %d\n", pin_val);
-        }
 
+		init_completion(&spi_data->ifx_read_write_completion);
+
+        return -3;
 
 	}
-// LGE_UPDATE_E eungbo.shim@lge.com 20110111 -- SPI RETRY
+// LGE_UPDATE_E eungbo.shim@lge.com 20110111 -- SPI RETRY 
 	init_completion(&spi_data->ifx_read_write_completion);
 #ifdef CONFIG_SPI_DEBUG
 	printk("[AP] ---------------------[END] \n");
@@ -407,16 +410,16 @@ ifx_spi_write(struct tty_struct *tty, const unsigned char *buf, int count)
 
 /* This function should return number of free bytes left in the write buffer in this case always return 2048 */
 
-static int
+static int 
 ifx_spi_write_room(struct tty_struct *tty)
 {
-    return IFX_SPI_MAX_BUF_SIZE;
+    return IFX_SPI_MAX_BUF_SIZE;	
 }
 
 /* End of IFX SPI Operations */
 
 
-static void
+static void 
 ifx_spi_ap_ready(struct spi_device *spi, int enable)
 {
 	struct ifx_spi_data *spi_data = spi_data_table[spi->master->bus_num - 1];
@@ -431,7 +434,7 @@ ifx_spi_ap_ready(struct spi_device *spi, int enable)
 
 /* TTY - SPI driver Operations */
 
-static int
+static int 
 ifx_spi_probe(struct spi_device *spi)
 {
 	int status;
@@ -450,7 +453,7 @@ ifx_spi_probe(struct spi_device *spi)
 		kfree(spi_data);
 		return -ENOMEM;
         }
-
+	
         dev_set_drvdata(&spi->dev,spi_data);
         spin_lock_init(&spi_data->spi_lock);
         INIT_WORK(&spi_data->ifx_work,ifx_spi_handle_work);
@@ -460,7 +463,7 @@ ifx_spi_probe(struct spi_device *spi)
 	spi_data->ifx_wq = create_singlethread_workqueue(spi_data->wq_name); //create_rt_workqueue
 
 	if(!spi_data->ifx_wq){
-		printk("Failed to setup workqueue - ifx_wq \n");
+		printk("Failed to setup workqueue - ifx_wq \n");          
         }
 
 	init_completion(&spi_data->ifx_read_write_completion);
@@ -472,14 +475,14 @@ ifx_spi_probe(struct spi_device *spi)
 	spi->mode = SPI_MODE_1;
 	spi->bits_per_word = 8;//32; For A-Project
 	spi->chip_select = 0 ;
-	spi->max_speed_hz = 24000000; //48000000; //to 24Mhz
+	spi->max_speed_hz = 24000000; //48000000; //to 24Mhz	
 	status = spi_setup(spi);
 
 	spi_data->ifx_spi_lock = 1;
 
 	if(status < 0){
 		printk("Failed to setup SPI \n");
-	}
+	}             
 
 	if (gpio_request(spi_data->srdy_gpio, "ifx srdy") < 0) {
 		printk(KERN_ERR "Can't get SRDY GPIO\n");
@@ -501,9 +504,9 @@ ifx_spi_probe(struct spi_device *spi)
 		ifx_spi_free_frame_memory(spi_data);
 		if(spi_data){
 			kfree(spi_data);
-		}
+		}          
 	}
-
+	
 	enable_irq_wake(spi->irq);
 	ifx_spi_buffer_initialization(spi_data);
 	spi_data_table[spi->master->bus_num - 1] = spi_data;
@@ -512,13 +515,13 @@ ifx_spi_probe(struct spi_device *spi)
 	// 20100929 yoolje.cho@lge.com  it should be done [START_LGE]
     gpio_direction_output(MODEM_CHK, 1);
 	// 20100929 yoolje.cho@lge.com  [END_LGE]
-
+	
 	return status;
 }
 
-static int
+static int 
 ifx_spi_remove(struct spi_device *spi)
-{
+{	
 	struct ifx_spi_data *spi_data;
 	spi_data = spi_get_drvdata(spi);
 	spin_lock_irq(&spi_data->spi_lock);
@@ -529,7 +532,7 @@ ifx_spi_remove(struct spi_device *spi)
 	ifx_spi_free_frame_memory(spi_data);
 	if(spi_data){
 		kfree(spi_data);
-	}
+	}          
 	spi_data_table[spi->master->bus_num - 1] = NULL;
 	return 0;
 }
@@ -538,7 +541,7 @@ static int
 ifx_spi_suspend(struct spi_device *spi, pm_message_t mesg)
 {
     gpio_direction_output(MODEM_CHK,0);
-
+    
     return 0;
 }
 
@@ -547,7 +550,7 @@ ifx_spi_resume(struct spi_device *spi)
 {
     printk("modem_chk = %d \n",gpio_get_value(177));
     gpio_direction_output(MODEM_CHK,1);
-
+    
     return 0;
 }
 /* End of TTY - SPI driver Operations */
@@ -581,7 +584,7 @@ static const struct tty_operations ifx_spi_ops = {
 /*
  * Intialize frame sizes as "IFX_SPI_DEFAULT_BUF_SIZE"(128) bytes for first SPI frame transfer
  */
-static void
+static void 
 ifx_spi_buffer_initialization(struct ifx_spi_data *spi_data)
 {
 	spi_data->ifx_sender_buf_size = IFX_SPI_DEFAULT_BUF_SIZE;
@@ -591,7 +594,7 @@ ifx_spi_buffer_initialization(struct ifx_spi_data *spi_data)
 /*
  * Allocate memeory for TX_BUFFER and RX_BUFFER
  */
-static int
+static int 
 ifx_spi_allocate_frame_memory(struct ifx_spi_data *spi_data, unsigned int memory_size)
 {
 	int status = 0;
@@ -601,35 +604,35 @@ ifx_spi_allocate_frame_memory(struct ifx_spi_data *spi_data, unsigned int memory
 		status = -ENOMEM;
 	}
 	spi_data->ifx_tx_buffer = kmalloc(memory_size+IFX_SPI_HEADER_SIZE, GFP_KERNEL);
-	if (!spi_data->ifx_tx_buffer){
+	if (!spi_data->ifx_tx_buffer){		
 		printk("Open Failed ENOMEM\n");
 		status = -ENOMEM;
 	}
 	if(status == -ENOMEM){
-		if(spi_data->ifx_tx_buffer){
+		if(spi_data->ifx_tx_buffer){    
 			kfree(spi_data->ifx_tx_buffer);
 		}
 		if(spi_data->ifx_rx_buffer){
-			kfree(spi_data->ifx_rx_buffer);
+			kfree(spi_data->ifx_rx_buffer);            
 		}
 	}
 	return status;
 }
-static void
+static void 
 ifx_spi_free_frame_memory(struct ifx_spi_data *spi_data)
 {
 	if(spi_data->ifx_tx_buffer){
 		kfree(spi_data->ifx_tx_buffer);
 	}
 	if(spi_data->ifx_rx_buffer){
-		kfree(spi_data->ifx_rx_buffer);
+		kfree(spi_data->ifx_rx_buffer);            
 	}
 }
 
 /*
  * Function to set header information according to IFX SPI framing protocol specification
  */
-static void
+static void 
 ifx_spi_set_header_info(unsigned char *header_buffer, unsigned int curr_buf_size, unsigned int next_buf_size)
 {
 	int i;
@@ -656,7 +659,7 @@ ifx_spi_set_header_info(unsigned char *header_buffer, unsigned int curr_buf_size
 /*
  * Function to get header information according to IFX SPI framing protocol specification
  */
-static int
+static int 
 ifx_spi_get_header_info(unsigned char *rx_buffer, unsigned int *valid_buf_size)
 {
 	int i;
@@ -690,7 +693,7 @@ ifx_spi_get_header_info(unsigned char *rx_buffer, unsigned int *valid_buf_size)
 /*
  * Function to set/reset MRDY signal
  */
-static void
+static void 
 ifx_spi_set_mrdy_signal(struct ifx_spi_data *spi_data, int value)
 {
 	gpio_set_value(spi_data->mrdy_gpio, value);
@@ -703,31 +706,31 @@ ifx_spi_set_mrdy_signal(struct ifx_spi_data *spi_data, int value)
 /*
  * Function to calculate next_frame_size required for filling in SPI frame Header
  */
-static int
+static int 
 ifx_spi_get_next_frame_size(int count)
 {
 	if(count > IFX_SPI_MAX_BUF_SIZE){
-		return IFX_SPI_MAX_BUF_SIZE;
+		return IFX_SPI_MAX_BUF_SIZE;    
 	}
-	else{
+	else{   
 		return count;
 	}
 }
 
 /*
  * Function to setup transmission and reception. It implements a logic to find out the ifx_current_frame_size,
- * valid_frame_size and sender_next_frame_size to set in SPI header frame. Copys the data to be transferred from
+ * valid_frame_size and sender_next_frame_size to set in SPI header frame. Copys the data to be transferred from 
  * user space to TX buffer and set MRDY signal to HIGH to indicate Master is ready to transfer data.
  */
-static void
+static void 
 ifx_spi_setup_transmission(struct ifx_spi_data *spi_data)
 {
 	if( (spi_data->ifx_sender_buf_size != 0) || (spi_data->ifx_receiver_buf_size != 0) ){
 		if(spi_data->ifx_sender_buf_size > spi_data->ifx_receiver_buf_size){
 			spi_data->ifx_current_frame_size = spi_data->ifx_sender_buf_size;
 		}
-		else{
-			spi_data->ifx_current_frame_size = spi_data->ifx_receiver_buf_size;
+		else{ 
+			spi_data->ifx_current_frame_size = spi_data->ifx_receiver_buf_size;    
 		}
 		if(spi_data->ifx_spi_count > 0){
 			if(spi_data->ifx_spi_count > spi_data->ifx_current_frame_size){
@@ -751,7 +754,7 @@ ifx_spi_setup_transmission(struct ifx_spi_data *spi_data)
 
 		/* Set header information */
 		ifx_spi_set_header_info(spi_data->ifx_tx_buffer, spi_data->ifx_valid_frame_size, spi_data->ifx_sender_buf_size);
-		if( spi_data->ifx_valid_frame_size > 0 ){
+		if( spi_data->ifx_valid_frame_size > 0 ){      
 			memcpy(spi_data->ifx_tx_buffer+IFX_SPI_HEADER_SIZE, spi_data->ifx_spi_buf, spi_data->ifx_valid_frame_size);
 			spi_data->ifx_spi_buf += spi_data->ifx_valid_frame_size;
 		}
@@ -763,20 +766,20 @@ ifx_spi_setup_transmission(struct ifx_spi_data *spi_data)
  * Function starts Read and write operation and transfers received data to TTY core. It pulls down MRDY signal
  * in case of single frame transfer then sets "ifx_read_write_completion" to indicate transfer complete.
  */
-static void
+static void 
 ifx_spi_send_and_receive_data(struct ifx_spi_data *spi_data)
 {
 	unsigned int rx_valid_buf_size;
-	int status = 0;
+	int status = 0; 
 
 #ifdef CONFIG_SPI_DEBUG
 	printk("SPI READ & WRITE [S] \n");
 #endif
-	status = ifx_spi_sync_read_write(spi_data, spi_data->ifx_current_frame_size+IFX_SPI_HEADER_SIZE); /* 4 bytes for header */
+	status = ifx_spi_sync_read_write(spi_data, spi_data->ifx_current_frame_size+IFX_SPI_HEADER_SIZE); /* 4 bytes for header */                       
 #ifdef CONFIG_SPI_DEBUG
 	printk("SPI READ & WRITE [END] \n");
 	SPI_DEBUG_PRINT("SPI TX : ");
-//	dump_atcmd(spi_data->ifx_tx_buffer+IFX_SPI_HEADER_SIZE+2) ;
+//	dump_atcmd(spi_data->ifx_tx_buffer+IFX_SPI_HEADER_SIZE+2) ; 	
 #endif
 
 	if(status > 0)
@@ -784,7 +787,7 @@ ifx_spi_send_and_receive_data(struct ifx_spi_data *spi_data)
 		memset(spi_data->ifx_tx_buffer,0,IFX_SPI_MAX_BUF_SIZE+IFX_SPI_HEADER_SIZE);
 		spi_data->ifx_ret_count += spi_data->ifx_valid_frame_size;
 	}
-
+    
 	if(*((int*)spi_data->ifx_rx_buffer) == 0xFFFFFFFF)
 	{
 		spi_data->ifx_receiver_buf_size = 0;
@@ -803,15 +806,15 @@ ifx_spi_send_and_receive_data(struct ifx_spi_data *spi_data)
     dump_spi_buffer("ifx_spi_send_and_receive_data()[Recev]", &(spi_data->ifx_rx_buffer[4]), rx_valid_buf_size);
 #endif
 
-//		dump_atcmd(spi_data->ifx_rx_buffer+IFX_SPI_HEADER_SIZE+2) ;
+//		dump_atcmd(spi_data->ifx_rx_buffer+IFX_SPI_HEADER_SIZE+2) ;		
 		tty_insert_flip_string(spi_data->ifx_tty, spi_data->ifx_rx_buffer+IFX_SPI_HEADER_SIZE, rx_valid_buf_size);
 
 		tty_flip_buffer_push(spi_data->ifx_tty);
-	}
+	}  
 	/*else
-  	{
+  	{ 
 	handle RTS and CTS in SPI flow control
-	Reject the packet as of now
+	Reject the packet as of now 
 	}*/
 }
 
@@ -819,7 +822,7 @@ ifx_spi_send_and_receive_data(struct ifx_spi_data *spi_data)
  * Function copies the TX_BUFFER and RX_BUFFER pointer to a spi_transfer structure and add it to SPI tasks.
  * And calls SPI Driver function "spi_sync" to start data transmission and reception to from MODEM
  */
-static unsigned int
+static unsigned int 
 ifx_spi_sync_read_write(struct ifx_spi_data *spi_data, unsigned int len)
 {
 	int status;
@@ -831,13 +834,13 @@ ifx_spi_sync_read_write(struct ifx_spi_data *spi_data, unsigned int len)
 					};
 	spi_message_init(&m);
 	spi_message_add_tail(&t, &m);
-
+	
 	if (spi_data->spi == NULL)
 		status = -ESHUTDOWN;
 	else
 		status = spi_sync(spi_data->spi, &m);
-
-	if (status == 0){
+	
+	if (status == 0){          
 		status = m.status;
 		if (status == 0)
 			status = m.actual_length;
@@ -851,13 +854,13 @@ ifx_spi_sync_read_write(struct ifx_spi_data *spi_data, unsigned int len)
 /*
  * Function is a Interrupt service routine, is called when SRDY signal goes HIGH. It set up transmission and
  * reception if it is a Slave initiated data transfer. For both the cases Master intiated/Slave intiated
- * transfer it starts data transfer.
+ * transfer it starts data transfer. 
  */
-static irqreturn_t
+static irqreturn_t 
 ifx_spi_handle_srdy_irq(int irq, void *handle)
 {
 	struct ifx_spi_data *spi_data = (struct ifx_spi_data *)handle;
-#ifdef CONFIG_SPI_DEBUG
+#ifdef CONFIG_SPI_DEBUG		
 	printk("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< CP ISR\n");
 #endif
 	{
@@ -867,15 +870,15 @@ ifx_spi_handle_srdy_irq(int irq, void *handle)
 			return IRQ_HANDLED;
 		}
 	}
-	queue_work(spi_data->ifx_wq, &spi_data->ifx_work);
+	queue_work(spi_data->ifx_wq, &spi_data->ifx_work);    
 
-	return IRQ_HANDLED;
+	return IRQ_HANDLED; 
 }
 // <EBS> [LGE_UPDATE_S eungbo.shim@lge.com  2009-04-08 ]
 // TODO: 1) ifx_master_initiated_transfer = 1; -->WHEN THE SPI WRITE function calls
-// TODO: 2) ifx_master_initiated_transfer = 0; -->Default
+// TODO: 2) ifx_master_initiated_transfer = 0; -->Default 
 // [LGE_UPDATE_E eungbo.shim@lge.com  2009-04-08 ] <EBS>
-static void
+static void 
 ifx_spi_handle_work(struct work_struct *work)
 {
 	struct ifx_spi_data *spi_data = container_of(work, struct ifx_spi_data, ifx_work);
@@ -905,7 +908,7 @@ ifx_spi_handle_work(struct work_struct *work)
 		/* Once Slave initiated transfer is complete then start Master initiated transfer */
 		if(spi_data->ifx_master_initiated_transfer == 1)
 		{
-		/* It is a condition where Slave has initiated data transfer and both SRDY and MRDY are high and at the end of data transfer
+		/* It is a condition where Slave has initiated data transfer and both SRDY and MRDY are high and at the end of data transfer		
 	 	* MUX has some data to transfer. MUX initiates Master initiated transfer rising MRDY high, which will not be detected at Slave-MODEM.
 	 	* So it was required to rise MRDY high again */
 
@@ -914,7 +917,7 @@ ifx_spi_handle_work(struct work_struct *work)
  //20100701-1, syblue.lee@lge.com, delay time until CP can be ready again [END]
 #ifdef CONFIG_LGE_SPI_MODE_SLAVE
 #else
-                ifx_spi_set_mrdy_signal(spi_data, 1);
+                ifx_spi_set_mrdy_signal(spi_data, 1);    		
 #endif
 		}
 #ifdef CONFIG_SPI_DEBUG
@@ -926,13 +929,13 @@ ifx_spi_handle_work(struct work_struct *work)
 #ifdef CONFIG_SPI_DEBUG
 		printk("[LGE-SPI] INTERRUPT BY OMAP\n");
 #endif
-		ifx_spi_setup_transmission(spi_data);
+		ifx_spi_setup_transmission(spi_data);     
 		ifx_spi_send_and_receive_data(spi_data);
 		/* Once data transmission is completed, the MRDY signal is lowered */
 		if(spi_data->ifx_sender_buf_size == 0)
 		{
 			if(spi_data->ifx_receiver_buf_size == 0)
-			{
+			{		
 				ifx_spi_set_mrdy_signal(spi_data, 0);
 
 //20100701-1, syblue.lee@lge.com, delay time until CP can be ready again [START]
@@ -956,12 +959,12 @@ ifx_spi_handle_work(struct work_struct *work)
 /* Initialization Functions */
 
 /*
- * Initialization function which allocates and set different parameters for TTY SPI driver. Registers the tty driver
+ * Initialization function which allocates and set different parameters for TTY SPI driver. Registers the tty driver 
  * with TTY core and register SPI driver with the Kernel. It validates the GPIO pins for MRDY and then request an IRQ
  * on SRDY GPIO pin for SRDY signal going HIGH. In case of failure of SPI driver register cases it unregister tty driver
  * from tty core.
  */
-static int
+static int 
 __init ifx_spi_init(void)
 {
 int status = 0;
@@ -996,7 +999,7 @@ int status = 0;
 
 	/* Register SPI Driver */
 	status = spi_register_driver(&ifx_spi_driver);
-	if (status < 0){
+	if (status < 0){ 
 		printk("Failed to register SPI device");
 		tty_unregister_driver(ifx_spi_tty_driver);
 		put_tty_driver(ifx_spi_tty_driver);
@@ -1011,9 +1014,9 @@ module_init(ifx_spi_init);
 /*
  * Exit function to unregister SPI driver and tty SPI driver
  */
-static void
+static void 
 __exit ifx_spi_exit(void)
-{
+{  
 	spi_unregister_driver(&ifx_spi_driver);
 	tty_unregister_driver(ifx_spi_tty_driver);
     put_tty_driver(ifx_spi_tty_driver);

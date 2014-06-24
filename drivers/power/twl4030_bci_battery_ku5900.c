@@ -961,6 +961,11 @@ extern u32 doing_wakeup;
 
 static void twl4030_bci_battery_read_status(struct twl4030_bci_device_info *di)
 {
+	max8922_status chr_ic_status = CHARGING_IC_DEACTIVE;
+	chr_ic_status = get_charging_ic_status();
+
+    TYPE_MUIC_MODE muic_mode = MUIC_NONE;
+	muic_mode = muic_get_mode();
 	/* Read Battery Status */
 	di->temp_C = twl4030battery_temperature();			// Read Temperature
 
@@ -979,7 +984,8 @@ static void twl4030_bci_battery_read_status(struct twl4030_bci_device_info *di)
 	di->voltage_uV = twl4030battery_voltage();			// Read Voltage
 	di->battery_capacity = twl4030battery_capacity(di);	// Read Capacity
 	di->battery_present = check_battery_present();		// Set Battery Present
-
+	printk("[BATTERY] +++ vol:%d, chr:%d, muic:%d, temp:%d, cap:%d \n",
+		di->voltage_uV ,chr_ic_status ,muic_mode ,di->temp_C,di->battery_capacity );
 	/* hub do not use BCI block. so we cannot measure battery current */
 	di->current_uA = 0;
 }
