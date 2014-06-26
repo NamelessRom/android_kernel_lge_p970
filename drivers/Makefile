@@ -123,6 +123,9 @@ obj-y				+= ieee802154/
 #common clk code
 obj-y				+= clk/
 
+# exFat
+obj-y += exfat/
+
 obj-$(CONFIG_HWSPINLOCK)	+= hwspinlock/
 obj-$(CONFIG_REMOTE_PROC)	+= remoteproc/
 
