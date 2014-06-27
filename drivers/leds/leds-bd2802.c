@@ -30,7 +30,7 @@
 #include <linux/earlysuspend.h>
 #endif
 
-#define MODULE_NAME   "led-bd2802"
+#define MODULE_NAME "led-bd2802"
 
 #define RGB_LED_GPIO 		128
 
@@ -47,7 +47,7 @@
 #define BD2802_CURRENT_DEFAULT	0x46 /* 14.0mA */
 
 static u8 pattern_brightness = BD2802_CURRENT_DEFAULT;
-static u8 button_brightness = BD2802_CURRENT_DEFAULT; // 10 mA
+static u8 button_brightness = BD2802_CURRENT_DEFAULT;
 
 static struct mutex mutex;
 
@@ -204,29 +204,29 @@ enum INPUT {
 	INPUT_TOUCHKEY,
 	INPUT_BUTTON,
 	INPUT_PATTERN,
-	INPUT_SAVE_FIRST = INPUT_TOUCHKEY,
-	INPUT_SAVE_LAST = INPUT_PATTERN,
-	INPUT_OTHER,
+
+	INPUT_FIRST = INPUT_TOUCHKEY,
+	INPUT_LAST = INPUT_PATTERN,
 };
-#define INPUT_SAVE_SIZE (INPUT_SAVE_LAST - INPUT_SAVE_FIRST + 1)
+
+#define ENUM_SIZE(_enum) ((_enum ## _LAST) - (_enum ## _FIRST) + 1)
 
 static const char *input_str[] = {
 	set_name(INPUT_TOUCHKEY),
 	set_name(INPUT_BUTTON),
 	set_name(INPUT_PATTERN),
-	set_name(INPUT_OTHER),
 };
 
-enum STATE {
-	STATE_OFF,
-	STATE_ON,
-	STATE_FIRST = STATE_OFF,
-	STATE_LAST = STATE_ON,
+enum ONOFF {
+	ONOFF_OFF,
+	ONOFF_DYN_OFF,
+	ONOFF_DYN_ON,
 };
 
-static const char *status_str[] = {
-	[STATE_OFF] = "off",
-	[STATE_ON] = "on",
+static const char *onoff_str[] = {
+	[ONOFF_OFF] = "off",
+	[ONOFF_DYN_OFF] = "on (dyn off)",
+	[ONOFF_DYN_ON] = "on (dyn on)",
 };
 
 struct pattern {
@@ -247,13 +247,13 @@ struct bd2802_led {
 
 	/* General attributes of RGB LED_DRIVERs */
 	u8 register_value[23];
-	enum STATE status;
+	enum ONOFF onoff;
 
 	/* space for custom pattern from pattern */
 	struct pattern custom_pattern;
 	enum INPUT active_input;
 	/* The following contains just pointers, thus the pointers have to be valid all time */
-	const struct pattern *saved_patterns[INPUT_SAVE_SIZE];
+	const struct pattern *saved_patterns[ENUM_SIZE(INPUT)];
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	struct early_suspend early_suspend;
 #endif
@@ -311,22 +311,22 @@ enum LED_REG {
 };
 
 enum WAVE {
-	WAVE_17 = 0,		// 12222222
-	WAVE_26 = 1,		// 11222222
-	WAVE_35 = 2,		// 11122222
-	WAVE_44 = 3,		// 11112222
-	WAVE_53 = 4,		// 11111222
-	WAVE_62 = 5,		// 11111122
-	WAVE_71 = 6,		// 11111112
-	WAVE_8 = 7,			// 11111111
-	WAVE_224 = 8,		// 11221111
-	WAVE_422 = 9,		// 11112211
-	WAVE_12221 = 10,	// 12211221
-	WAVE_2222 = 11,		// 11221122
-	WAVE_143 = 12,		// 12222111
-	WAVE_242 = 13,		// 11222211
-	WAVE_351 = 14,		// 11122221
-	WAVE_11111111 = 15,	// 12121212
+	WAVE_17 = 0,		/* 12222222 */
+	WAVE_26 = 1,		/* 11222222 */
+	WAVE_35 = 2,		/* 11122222 */
+	WAVE_44 = 3,		/* 11112222 */
+	WAVE_53 = 4,		/* 11111222 */
+	WAVE_62 = 5,		/* 11111122 */
+	WAVE_71 = 6,		/* 11111112 */
+	WAVE_8 = 7,			/* 11111111 */
+	WAVE_224 = 8,		/* 11221111 */
+	WAVE_422 = 9,		/* 11112211 */
+	WAVE_12221 = 10,	/* 12211221 */
+	WAVE_2222 = 11,		/* 11221122 */
+	WAVE_143 = 12,		/* 12222111 */
+	WAVE_242 = 13,		/* 11222211 */
+	WAVE_351 = 14,		/* 11122221 */
+	WAVE_11111111 = 15,	/* 12121212 */
 	WAVE_LAST = WAVE_11111111,
 	WAVE_FIRST = WAVE_17,
 };
@@ -470,27 +470,60 @@ static void bd2802_led_set(struct bd2802_led *bd2802_led, enum LED led,
 }
 
 #define IS_OFF(pattern) (pattern->type == PATTERN_ALL_OFF)
-#define IS_TO_BE_SAVED(input) (input >= INPUT_SAVE_FIRST && input <= INPUT_SAVE_LAST)
 #define IS_ACTIVE(input) ((input) == bd2802_led->active_input)
 
-static void bd2802_on(struct bd2802_led *bd2802_led)
+static void bd2802_locked_dyn_on(struct bd2802_led *bd2802_led)
 {
-	if (bd2802_led->status == STATE_OFF) {
+	if (bd2802_led->onoff == ONOFF_DYN_OFF) {
 		gpio_set_value(RGB_LED_GPIO, 1);
 		udelay(200);
 		bd2802_write_byte(bd2802_led->client, BD2812_DCDCDRIVER, 0x00);
 		bd2802_write_byte(bd2802_led->client, BD2812_PIN_FUNC_SETUP, 0x0F);
-		bd2802_led->status = STATE_ON;
+		bd2802_led->onoff = ONOFF_DYN_ON;
+	}
+}
+
+static void bd2802_locked_dyn_off(struct bd2802_led *bd2802_led)
+{
+	if (bd2802_led->onoff == ONOFF_DYN_ON) {
+		bd2802_write_byte(bd2802_led->client, BD2802_REG_CONTROL, 0x00);
+		gpio_set_value(RGB_LED_GPIO, 0);
+		bd2802_led->onoff = ONOFF_DYN_OFF;
 	}
 }
 
 static void bd2802_off(struct bd2802_led *bd2802_led)
 {
-	if (bd2802_led->status == STATE_ON) {
-		bd2802_write_byte(bd2802_led->client, BD2802_REG_CONTROL, 0x00);
-		gpio_set_value(RGB_LED_GPIO, 0);
-		bd2802_led->status = STATE_OFF;
+	pr_info("Deactivating key leds\n");
+	down_write(&bd2802_led->rwsem);
+	if (bd2802_led->onoff != ONOFF_OFF) {
+		bd2802_locked_dyn_off(bd2802_led);
+		bd2802_led->onoff = ONOFF_OFF;
 	}
+	up_write(&bd2802_led->rwsem);
+}
+
+static void bd2802_on(struct bd2802_led *bd2802_led)
+{
+	pr_info("Reactivating key leds\n");
+	down_write(&bd2802_led->rwsem);
+	if (bd2802_led->onoff == ONOFF_OFF) {
+		bd2802_led->onoff = ONOFF_DYN_OFF;
+	}
+	up_write(&bd2802_led->rwsem);
+	bd2802_update_active_pattern(bd2802_led);
+}
+
+static void bd2802_reset(struct bd2802_led *bd2802_led)
+{
+	enum INPUT input;
+	bd2802_off(bd2802_led);
+	down_write(&bd2802_led->rwsem);
+	for (input = INPUT_FIRST; input <= INPUT_LAST; ++input) {
+		bd2802_led->saved_patterns[input] = &all_off;
+	}
+	up_write(&bd2802_led->rwsem);
+	bd2802_on(bd2802_led);
 }
 
 #define CALC_VALUE(value_struct) \
@@ -498,82 +531,106 @@ static void bd2802_off(struct bd2802_led *bd2802_led)
 	*special_values[(value_struct).value] : \
 	(unsigned int)(value_struct).value * pattern_brightness / U7_MAX)
 
+/*
+ * Actually write the pattern via i2c.
+ */
 static void bd2802_write_pattern(struct bd2802_led *bd2802_led,
 	const struct pattern *pattern, enum INPUT input)
 {
 	u8 hour = (pattern->slope_down << 6) | (pattern->slope_up << 4) | pattern->cycle_length;
 	u8 control = pattern->operation == OPERATION_ONCE ? 0x22 : 0x11;
 	enum LED led;
-	bd2802_on(bd2802_led);
+
+	bd2802_led->active_input = input;
+
+	if (bd2802_led->onoff == ONOFF_OFF) {
+		pr_info("Skipping write of pattern as leds are deactivated\n");
+		return;
+	}
+
+	bd2802_locked_dyn_on(bd2802_led);
+
 	for (led = LED_FIRST; led <= LED_LAST; ++led) {
 		const struct led_settings *led_settings = &pattern->led_settings[led];
 		u8 value0 = CALC_VALUE(led_settings->values[0]);
 		u8 value1 = CALC_VALUE(led_settings->values[1]);
 		bd2802_led_set(bd2802_led, led, value0, value1, led_settings->wave);
 	}
-	bd2802_write_byte(bd2802_led->client, 0x02, hour);
-	bd2802_write_byte(bd2802_led->client, 0x0C, hour);
-	bd2802_write_byte(bd2802_led->client, 0x01, control);
-	bd2802_led->active_input = input;
+
+	bd2802_write_byte(bd2802_led->client, BD2802_REG_HOUR1SETUP, hour);
+	bd2802_write_byte(bd2802_led->client, BD2802_REG_HOUR2SETUP, hour);
+	bd2802_write_byte(bd2802_led->client, BD2802_REG_CONTROL, control);
 }
 
+/*
+ * This method is called if an an input is set to off.
+ * This methods thus either turns the leds off or
+ * restores another input if that input is still set.
+ */
 static void bd2802_restore_pattern_or_off(struct bd2802_led *bd2802_led,
 	const struct pattern *pattern, enum INPUT input)
 {
 	enum INPUT a;
 	enum INPUT restore_input = input;
 	const struct pattern *restore_pattern = pattern;
+
 	if (!IS_OFF(pattern)) {
 		pr_err("Restore pattern called with %s (!= PATTERN_TYPE_ALL_OFF)\n", pattern_str[pattern->type]);
 		return;
 	}
+
 	if (!IS_ACTIVE(input)) {
-		// nothing to do as another pattern is active
+		/* nothing to do as another pattern is active */
 		return;
 	}
-	// if there is a saved_pattern try to restore that
-	for (a = INPUT_SAVE_FIRST; a <= INPUT_SAVE_LAST; ++a) {
+
+	/* if there is a saved_pattern try to restore that */
+	for (a = INPUT_FIRST; a <= INPUT_LAST; ++a) {
 		const struct pattern *p = bd2802_led->saved_patterns[a];
 		if (a != input && !IS_OFF(p)) {
 			restore_pattern = p;
 			restore_input = a;
-			pr_info("Restoring pattern %s for input %s "
-				"instead of %s from %s\n",
+			pr_info("Restoring pattern %s from input %s "
+				"instead of setting %s from %s\n",
 				pattern_str[restore_pattern->type], input_str[restore_input],
 				pattern_str[pattern->type], input_str[input]);
 			break;
 		}
 	}
+
 	if (IS_OFF(restore_pattern)) {
-		bd2802_off(bd2802_led);
+		bd2802_locked_dyn_off(bd2802_led);
 		bd2802_led->active_input = input;
 	} else {
 		bd2802_write_pattern(bd2802_led, restore_pattern, restore_input);
 	}
 }
 
+/*
+ * Called when updating the pattern or button brightness or writing on to onoff
+ */
 static void bd2802_update_active_pattern(struct bd2802_led *bd2802_led)
 {
 	enum INPUT input;
+	const struct pattern *pattern;
+
 	down_write(&bd2802_led->rwsem);
 
 	input = bd2802_led->active_input;
-	if (IS_TO_BE_SAVED(input)) {
-		const struct pattern *pattern = bd2802_led->saved_patterns[input];
-		pattern->func(bd2802_led, pattern, input);
-	}
+	pattern = bd2802_led->saved_patterns[input];
+	pattern->func(bd2802_led, pattern, input);
 
 	up_write(&bd2802_led->rwsem);
 }
 
 /*
- * This function sets the given pattern.
- * There is also some special handling to restore previous patterns in case the parameter "pattern"
- * should turn the leds off.
+ * This function sets the given pattern and stores it in bd2802_led.
+ * There is also some special handling to restore previous patterns in case
+ * the parameter "pattern" is an OFF-pattern.
  *
  * Note that the parameter "pattern" has to stay valid beyound the end of this function as it
  * may be used to restore a previous pattern in another call to this function.
- * So it either has to be a pointer to a static value or a pointer to an element of bd2802_led
+ * So it either should be a pointer to a global variable or a pointer to an element of bd2802_led
  */
 static void bd2802_set_pattern(struct bd2802_led *bd2802_led,
 	const struct pattern *pattern, enum INPUT input)
@@ -583,9 +640,7 @@ static void bd2802_set_pattern(struct bd2802_led *bd2802_led,
 
 	down_write(&bd2802_led->rwsem);
 
-	if (IS_TO_BE_SAVED(input)) {
-		bd2802_led->saved_patterns[input] = pattern;
-	}
+	bd2802_led->saved_patterns[input] = pattern;
 	pattern->func(bd2802_led, pattern, input);
 
 	up_write(&bd2802_led->rwsem);
@@ -620,33 +675,40 @@ void touchkey_pressed(enum LED led)
 }
 EXPORT_SYMBOL(touchkey_pressed);
 
-static ssize_t state_show(struct device *dev,
+static ssize_t onoff_show(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
 	struct bd2802_led *bd2802_led = i2c_get_clientdata(to_i2c_client(dev));
-	return snprintf(buf, PAGE_SIZE, "%s\n", status_str[bd2802_led->status]);
+	return snprintf(buf, PAGE_SIZE, "%s\n", onoff_str[bd2802_led->onoff]);
 }
 
-void (*bd2802_on_off[])(struct bd2802_led *) = {
-	[STATE_ON] = bd2802_on,
-	[STATE_OFF] = bd2802_off,
+struct onoff_cb {
+	const char *input;
+	void (*on_off)(struct bd2802_led *);
 };
 
-static ssize_t state_store(struct device *dev,
+struct onoff_cb onoff_cb[] = {
+	{"off", bd2802_off},
+	{"on", bd2802_on},
+	{"reset", bd2802_reset},
+	{"0", bd2802_off},
+	{"1", bd2802_on},
+};
+
+static ssize_t onoff_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct bd2802_led *bd2802_led = i2c_get_clientdata(to_i2c_client(dev));
-	enum STATE s;
+	int i;
 
-	for (s = STATE_FIRST; s <= STATE_LAST; ++s) {
-		if (strstarts(buf, status_str[s])) {
-			pr_info("Setting state to %s\n", status_str[s]);
-			down_write(&bd2802_led->rwsem);
-			bd2802_on_off[s](bd2802_led);
-			up_write(&bd2802_led->rwsem);
+	for (i = 0; i < ARRAY_SIZE(onoff_cb); ++i) {
+		if (strstarts(buf, onoff_cb[i].input)) {
+			onoff_cb[i].on_off(bd2802_led);
 			return count;
 		}
 	}
+
+	pr_err("Value %s not supported\n", buf);
 
 	return -EINVAL;
 }
@@ -679,18 +741,19 @@ static ssize_t pattern_show(struct device *dev,
 {
 	return snprintf(buf, PAGE_SIZE,
 		"Write integers in the following format:\n\n"
-		"cycle_length slope_up slope_down - (brightness0 brightness1 wave_pattern,)"
+		"cycle_length slope_up slope_down - (brightness0 brightness1 wave_pattern,)\n"
 		"{for each of the 6 leds: MENU, HOME, BACK, SEARCH, BLUELEFT, BLUERIGHT}\n\n"
 		"cycle_length: 0-15 (representing cycle lengths in the range from 131 ms to 16.8 s (*))\n"
-                "slope_up, slope_down: 0-3 (none, 16th, 8th, 4th of the cycle length)\n"
-                "brightness{0,1}: 0-127 (multiples of pattern_brightness / 127)\n" // U7_MAX
-		"wave_pattern: 0-15 (*)\n" // WAVE_FIRST to WAVE_LAST
+		"slope_up, slope_down: 0-3 (none, 16th, 8th, 4th of the cycle length)\n"
+		"brightness{0,1}: 0-127 (multiples of pattern_brightness / 127)\n" /* U7_MAX */
+		"wave_pattern: 0-15 (*)\n" /* WAVE_FIRST to WAVE_LAST */
 		"(*) Have a look at the source code or datasheet for details\n"
 		"To disable the pattern write a pattern with all brightness levels set to 0\n\n"
 		"Examples:\n"
 		"echo \"3 3 3 - 0 127 12, 0 127 13, 0 127 14, 0 127 3, 127 0 7, 127 0 7\" > pattern\n"
 		"echo \"0 0 0 - 0 0 0, 0 0 0, 0 0 0, 0 0 0, 0 0 0, 0 0 0\" > pattern\n");
 }
+
 static ssize_t pattern_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
@@ -743,7 +806,7 @@ static ssize_t pattern_store(struct device *dev,
 	if (is_off) {
 		bd2802_set_pattern(bd2802_led, &all_off, INPUT_PATTERN);
 	} else {
-		// store the pattern permanently and pass the stored pattern
+		/* store the pattern permanently and pass the stored pattern */
 		down_write(&bd2802_led->rwsem);
 		bd2802_led->custom_pattern = pattern;
 		up_write(&bd2802_led->rwsem);
@@ -753,7 +816,7 @@ static ssize_t pattern_store(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(state, 0644, state_show, state_store);
+static DEVICE_ATTR(onoff, 0644, onoff_show, onoff_store);
 static DEVICE_ATTR(pattern, 0644, pattern_show, pattern_store);
 static DEVICE_ATTR(button, 0644, button_show, button_store);
 
@@ -803,32 +866,32 @@ static const struct reg_attr reg_##reg_addr = { \
 	} \
 };
 
-BD2802_SET_REGISTER(0x00); // CLKSETUP
-BD2802_SET_REGISTER(0x01); // LED_DRIVERCONTROL
-BD2802_SET_REGISTER(0x02); // RGB1_HOURSETUP
-BD2802_SET_REGISTER(0x03); // R1_CURRENT1
-BD2802_SET_REGISTER(0x04); // R1_CURRENT2
-BD2802_SET_REGISTER(0x05); // R1_PATTERN
-BD2802_SET_REGISTER(0x06); // G1_CURRENT1
-BD2802_SET_REGISTER(0x07); // G1_CURRENT2
-BD2802_SET_REGISTER(0x08); // G1_PATTERN
-BD2802_SET_REGISTER(0x09); // B1_CURRENT1
-BD2802_SET_REGISTER(0x0a); // B1_CURRENT2
-BD2802_SET_REGISTER(0x0b); // B1_PATTERN
-BD2802_SET_REGISTER(0x0c); // RGB2_HOURSETUP
-BD2802_SET_REGISTER(0x0d); // R2_CURRENT1
-BD2802_SET_REGISTER(0x0e); // R2_CURRENT2
-BD2802_SET_REGISTER(0x0f); // R2_PATTERN
-BD2802_SET_REGISTER(0x10); // G2_CURRENT1
-BD2802_SET_REGISTER(0x11); // G2_CURRENT2
-BD2802_SET_REGISTER(0x12); // G2_PATTERN
-BD2802_SET_REGISTER(0x13); // B2_CURRENT1
-BD2802_SET_REGISTER(0x14); // B2_CURRENT2
-BD2802_SET_REGISTER(0x15); // B2_PATTERN
+BD2802_SET_REGISTER(0x00); /* CLKSETUP */
+BD2802_SET_REGISTER(0x01); /* LED_DRIVERCONTROL */
+BD2802_SET_REGISTER(0x02); /* RGB1_HOURSETUP */
+BD2802_SET_REGISTER(0x03); /* R1_CURRENT1 */
+BD2802_SET_REGISTER(0x04); /* R1_CURRENT2 */
+BD2802_SET_REGISTER(0x05); /* R1_PATTERN */
+BD2802_SET_REGISTER(0x06); /* G1_CURRENT1 */
+BD2802_SET_REGISTER(0x07); /* G1_CURRENT2 */
+BD2802_SET_REGISTER(0x08); /* G1_PATTERN */
+BD2802_SET_REGISTER(0x09); /* B1_CURRENT1 */
+BD2802_SET_REGISTER(0x0a); /* B1_CURRENT2 */
+BD2802_SET_REGISTER(0x0b); /* B1_PATTERN */
+BD2802_SET_REGISTER(0x0c); /* RGB2_HOURSETUP */
+BD2802_SET_REGISTER(0x0d); /* R2_CURRENT1 */
+BD2802_SET_REGISTER(0x0e); /* R2_CURRENT2 */
+BD2802_SET_REGISTER(0x0f); /* R2_PATTERN */
+BD2802_SET_REGISTER(0x10); /* G2_CURRENT1 */
+BD2802_SET_REGISTER(0x11); /* G2_CURRENT2 */
+BD2802_SET_REGISTER(0x12); /* G2_PATTERN */
+BD2802_SET_REGISTER(0x13); /* B2_CURRENT1 */
+BD2802_SET_REGISTER(0x14); /* B2_CURRENT2 */
+BD2802_SET_REGISTER(0x15); /* B2_PATTERN */
 
 static const struct device_attribute *bd2802_attributes[] = {
 	&dev_attr_pattern,
-	&dev_attr_state,
+	&dev_attr_onoff,
 	&dev_attr_button,
 	&dev_attr_pattern_brightness.attr,
 	&dev_attr_button_brightness.attr,
@@ -862,7 +925,7 @@ static void bd2802_on_resume(struct bd2802_led *bd2802_led)
 
 static void bd2802_on_suspend(struct bd2802_led *bd2802_led)
 {
-	// set touchkey immediately off
+	/* set touchkey input immediately off */
 	schedule_delayed_work(&bd2802_led->touchkey_delayed_off_work, 0);
 }
 
@@ -935,15 +998,8 @@ static int __devinit bd2802_probe(struct i2c_client *client,
 	register_early_suspend(&bd2802_led->early_suspend);
 #endif
 
-	{
-		enum INPUT a;
-		const struct pattern *pattern = &all_blinking;
-
-		for (a = INPUT_SAVE_FIRST; a <= INPUT_SAVE_LAST; ++a) {
-			bd2802_led->saved_patterns[a] = &all_off;
-		}
-		bd2802_set_pattern(bd2802_led, pattern, INPUT_OTHER);
-	}
+	bd2802_reset(bd2802_led);
+	bd2802_write_pattern(bd2802_led, &all_blinking, INPUT_TOUCHKEY);
 
 	return 0;
 
