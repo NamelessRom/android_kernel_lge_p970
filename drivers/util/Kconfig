@@ -1,0 +1,14 @@
+#
+# Some utility stuff
+#
+
+config UTIL_SYSFS
+	bool
+
+config UTIL_FADE
+	select UTIL_SYSFS
+	select UTIL_LD
+	bool
+
+config UTIL_LD
+	bool
