@@ -145,4 +145,6 @@ source "drivers/omap_hsi/Kconfig"
 # -- [[ LGE_UBIQUIX_MODIFIED_START : hskim@mnbt.co.kr [2012.03.29] - TDMB
 source "drivers/broadcast/Kconfig"
 # -- ]] LGE_UBIQUIX_MODIFIED_END : hskim@mnbt.co.kr [2012.03.29] - TDMB
+
+source "drivers/util/Kconfig"
 endmenu

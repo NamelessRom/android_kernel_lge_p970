@@ -141,3 +141,5 @@ obj-$(CONFIG_MUIC) += muic/
 # -- [[ LGE_UBIQUIX_MODIFIED_START : hskim@mnbt.co.kr [2012.03.29] - TDMB
 obj-$(CONFIG_LGE_BROADCAST_TDMB)	+= broadcast/
 # -- ]] LGE_UBIQUIX_MODIFIED_END : hskim@mnbt.co.kr [2012.03.29] - TDMB
+
+obj-y += util/
