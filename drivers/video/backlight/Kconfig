@@ -144,6 +144,9 @@ config BACKLIGHT_AAT2870
 	tristate "AAT2870 backlight control"
 	depends on I2C
 	default m
+	select UTIL_LD
+	select UTIL_FADE
+	select UTIL_SYSFS
 	help
 	  If you have a backlight based on AAT2870 controller chip,
 	  then say y to include a power driver for it.
