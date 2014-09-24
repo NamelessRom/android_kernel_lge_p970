@@ -69,6 +69,7 @@
  * with non-Thumb-2-capable firmware.
  */
 	.arm
+	.arch_extension sec
 
 /*
  * API functions
