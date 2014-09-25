@@ -21,8 +21,8 @@ static struct pvrsrv_attribute PVRSRVAttr = {
 	.sgx_version = 544,
 	.sgx_revision = 112,
 #else
-	.sgx_version = 540,
-	.sgx_revision = 120,
+	.sgx_version = 530,
+	.sgx_revision = 125,
 #endif
 };
 
