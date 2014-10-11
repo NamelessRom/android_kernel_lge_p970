@@ -1760,7 +1760,7 @@ static inline int drbd_bio_has_active_page(struct bio *bio)
 	struct bio_vec *bvec;
 	int i;
 
-	bio_for_each_segment(bvec, bio, i) {
+	__bio_for_each_segment(bvec, bio, i, 0) {
 		if (page_count(bvec->bv_page) > 1)
 			return 1;
 	}

@@ -83,8 +83,6 @@ extern int posix_acl_chmod_masq(struct posix_acl *, mode_t);
 
 extern struct posix_acl *get_posix_acl(struct inode *, int);
 extern int set_posix_acl(struct inode *, int, struct posix_acl *);
-extern int posix_acl_create(struct posix_acl **, gfp_t, umode_t *);
-extern int posix_acl_chmod(struct posix_acl **, gfp_t, umode_t);
 
 #ifdef CONFIG_FS_POSIX_ACL
 static inline struct posix_acl *get_cached_acl(struct inode *inode, int type)
