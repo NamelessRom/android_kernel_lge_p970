@@ -100,7 +100,7 @@ static void copy_to_high_bio_irq(struct bio *to, struct bio *from)
 	struct bio_vec *tovec, *fromvec;
 	int i;
 
-	bio_for_each_segment(tovec, to, i) {
+	__bio_for_each_segment(tovec, to, i, 0) {
 		fromvec = from->bi_io_vec + i;
 
 		/*
@@ -133,7 +133,7 @@ static void bounce_end_io(struct bio *bio, mempool_t *pool, int err)
 	/*
 	 * free up bounce indirect pages used
 	 */
-	bio_for_each_segment_all(bvec, bio, i) {
+	__bio_for_each_segment(bvec, bio, i, 0) {
 		org_vec = bio_orig->bi_io_vec + i;
 		if (bvec->bv_page == org_vec->bv_page)
 			continue;
@@ -235,7 +235,7 @@ static void __blk_queue_bounce(struct request_queue *q, struct bio **bio_orig,
 	 * at least one page was bounced, fill in possible non-highmem
 	 * pages
 	 */
-	bio_for_each_segment(from, *bio_orig, i) {
+	__bio_for_each_segment(from, *bio_orig, i, 0) {
 		to = bio_iovec_idx(bio, i);
 		if (!to->bv_page) {
 			to->bv_page = from->bv_page;
