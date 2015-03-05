@@ -69,7 +69,7 @@ static int omap_ion_mem_alloc(struct ion_client *client,
 {
 	return -1;
 }
-int omap_ion_get_pages(struct ion_client *client, struct ion_handle *handle,
+static int omap_ion_get_pages(struct ion_client *client, struct ion_handle *handle,
 			int *n, unsigned long *ion_addr,
 			struct omap_ion_tiler_alloc_data *sAllocData)
 {
